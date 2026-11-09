@@ -53,7 +53,7 @@ PARAMS <- list(
   stage2_dir    = file.path(DATA_DIR, "fits", "stage2"),          # written by 03_fit_stage2.R
   stage2_epoch  = 700L,                    # the checkpoint the study evaluates (drought response flat from 700 on)
   source_stage2 = file.path(FIT_DIR, "source_stage2.pt"),         # copied from stage2_dir on the first run
-  stage1_dir    = file.path(DATA_DIR, "weights", "zoo-bwi-v1"),   # regeneration start and L2 anchor (= stage 2's prefit)
+  stage1_dir    = file.path(DATA_DIR, "weights", "v0.1.0"),   # regeneration start and L2 anchor (= stage 2's prefit)
   env_vars      = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # = stage 2's: single drought index
   l2_lambda     = 1,                       # pull of the regeneration env slopes towards stage 1
   l2_free_cols  = 1L,                      # column 1 = intercept: no pull, the recruitment level is free

@@ -1,6 +1,6 @@
 # Validation report, FINNmodelBWI (variant linear)
 
-Written 2026-11-09 22:20 by `calibration/05_validation.R`; FINN 0.2.0, torch 0.15.1; parameters `weights/zoo-bwi-v1/parameters.pt` sha256 `dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7` rebuilt with `R/definition.R::build_model()`; data `prepared/two-interval-v8/holdout_blocked` (8596 site-periods).
+Written 2026-11-09 22:32 by `calibration/05_validation.R`; FINN 0.2.0, torch 0.15.1; parameters `weights/v0.1.0/parameters.pt` sha256 `dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7` rebuilt with `R/definition.R::build_model()`; data `prepared/two-interval-v8/holdout_blocked` (8596 site-periods).
 
 ## Holdout metrics
 

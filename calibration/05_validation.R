@@ -17,7 +17,7 @@
 ##        numbers here are the ones in metrics.csv; the study's own, larger
 ##        validation (train + holdout, drought experiments per management
 ##        tier, Harz) is in the FINN-bwi fit folder and summarised in the card.
-## INPUT  DATA_DIR/weights/zoo-bwi-v1/{parameters.pt, loss_history_stage2.csv, loss_history_stage3.csv}
+## INPUT  DATA_DIR/weights/v0.1.0/{parameters.pt, loss_history_stage2.csv, loss_history_stage3.csv}
 ##        DATA_DIR/prepared/two-interval-v8/holdout_blocked/{obs_dt, env_dt, env_unscaled_dt, env_scales,
 ##          init_cohort_dt, species_dt}.csv
 ## OUTPUT calibration/validation/metrics.csv            holdout metrics, one row per response x level
@@ -39,7 +39,7 @@ FIG_DIR   <- file.path(MODEL_DIR, "figures")
 dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 
 PARAMS <- list(
-  release        = "zoo-bwi-v1",            # weights folder (= GitHub release tag)
+  release        = "v0.1.0",                # weights folder (= the model repo's release tag)
   prep_version   = "two-interval-v8",
   holdout_set    = "holdout_blocked",       # spatially blocked, never fitted
   env_vars       = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # the model's env columns

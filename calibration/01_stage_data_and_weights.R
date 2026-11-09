@@ -49,7 +49,7 @@ if (is.na(SOURCE_DIR)) stop("FINN-bwi (or the unpacked data deposit) not found n
 PARAMS <- list(
   prep_version = "two-interval-v8",                     # the data version the paper's candidates are fitted on (PREPARATION.md)
   sets         = c("train", "holdout_blocked", "pilot", "national"),   # train = fitted sites, holdout_blocked = spatially blocked holdout, pilot = 2 k site-periods for smoke tests, national = every site-period (expected_preparation.csv, drought-by-tier experiments)
-  release      = "zoo-bwi-v1",                          # placeholder release tag of the GitHub release asset (coordinator decides)
+  release      = "v0.1.0",                              # the model repo's semver release tag (= weights folder name = GitHub release)
   ## the candidate (pending the final choice): linear, single drought index drought2, fitted recruitment cap, data v8
   stage1_dir   = "fits/2026-11-08-A-stage1-v8-drought2-mgmt-masked",
   stage2_dir   = "fits/2026-11-08-A-stage2-v8-drought2-ushape-lambda0.1-mortgrowth-masked",

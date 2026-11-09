@@ -45,7 +45,7 @@
 ##          baselines (FINN's "auto"), read by a 1-epoch lr = 0 probe fit;
 ##          dbh, ba, trees, regeneration weighted 0; weight_scale = "raw".
 ##        - period_mode "per_site": FINN scores loss_aggregation "tree" there only.
-## DATA   DATA_DIR/prepared/two-interval-v8/train; prefit DATA_DIR/weights/zoo-bwi-v1
+## DATA   DATA_DIR/prepared/two-interval-v8/train; prefit DATA_DIR/weights/v0.1.0
 ## RUN    Rscript calibration/03_fit_stage2.R   (from the FINNmodelBWI repo root; OMP_NUM_THREADS=1 for a reproducible single-thread run)
 ## OUTPUT DATA_DIR/fits/stage2: model_init.pt, model_stage2.pt (training model,
 ##        observed recruitment), model.pt (stage-2 growth/mortality/competition
@@ -67,7 +67,7 @@ PARAMS <- list(
   prep_version  = "two-interval-v8",       # the study's data version
   train_set     = "train",                 # 32,191 training site-periods
   holdout_set   = "holdout_blocked",       # not read here; recorded for the validation
-  stage1_dir    = file.path(DATA_DIR, "weights", "zoo-bwi-v1"),   # the released prefit (model_stage1.pt, stage1_coefficients.csv, dispersion_stage1.csv); DATA_DIR/fits/stage1 from 02_fit_stage1.R is bit-identical
+  stage1_dir    = file.path(DATA_DIR, "weights", "v0.1.0"),   # the released prefit (model_stage1.pt, stage1_coefficients.csv, dispersion_stage1.csv); DATA_DIR/fits/stage1 from 02_fit_stage1.R is bit-identical
   env_vars      = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # = the prefit's: single drought index
   losses        = "mortgrowth",            # growth + mortality only ("all" would add dbh, ba, trees at the census)
   l2_lambda     = 0.1,                     # pull of the env slopes towards the prefit

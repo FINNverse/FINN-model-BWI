@@ -9,7 +9,7 @@
 ##        stand and (b) from bare ground. Prints basal area per species.
 ## WHY    Checks that the released parameters load and run on the stated FINN
 ##        version and shows what a user has to supply. Seconds on one thread.
-## INPUT  DATA_DIR/weights/zoo-bwi-v1/parameters.pt; inst/model/{env_scales.csv, species.csv}
+## INPUT  DATA_DIR/weights/v0.1.0/parameters.pt; inst/model/{env_scales.csv, species.csv}
 ## OUTPUT console only
 ## RUN    Rscript calibration/08_quickstart_check.R   (from the FINNmodelBWI repo root)
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
@@ -20,7 +20,7 @@ source("R/definition.R")                 # build_model()
 
 DATA_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-zoo-data", "bwi"), file.path("..", "FINN-zoo-data", "bwi")))[1]
 PARAMS <- list(
-  release       = "zoo-bwi-v1",            # weights folder
+  release       = "v0.1.0",                # weights folder = release tag
   env_vars      = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # the model's env columns, in the formula order
   theta_sim_k   = 3.5,                     # recruit-draw dispersion factor (build_model default)
   patch_size_ha = 0.1,                     # the fitted patch area; keep it

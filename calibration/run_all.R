@@ -167,7 +167,7 @@ step("3b 07 expected_preparation.csv (compares with the committed table)", chara
 step("3c 02 stage 1 prefit (minutes)", file.path(DATA_DIR, "fits", "stage1", "model_stage1.pt"), rscript(file.path("calibration", "02_fit_stage1.R")))
 step("3d 03 stage 2 inverse calibration (~6 h single-threaded)", file.path(DATA_DIR, "fits", "stage2", "model.pt"), rscript(file.path("calibration", "03_fit_stage2.R")))
 step("3e 04 stage 3 regeneration + cap (~30 min)", file.path(DATA_DIR, "fits", "stage3", "model.pt"), rscript(file.path("calibration", "04_fit_stage3.R")))
-step("3f 06 parameter list = release asset", file.path(DATA_DIR, "weights", "zoo-bwi-v1", "parameters.pt"), rscript(file.path("calibration", "06_extract_parameters.R")))
+step("3f 06 parameter list = release asset", file.path(DATA_DIR, "weights", "v0.1.0", "parameters.pt"), rscript(file.path("calibration", "06_extract_parameters.R")))
 step("3g 05 holdout validation", file.path("calibration", "validation", "metrics.csv"), rscript(file.path("calibration", "05_validation.R")))
 step("3h 09 example sites for inst/extdata", file.path("inst", "extdata", "example_env.csv"), rscript(file.path("calibration", "09_example_sites.R")))
 message("all steps done ", format(Sys.time(), "%Y-%m-%d %H:%M"))
