@@ -11,10 +11,10 @@ reproduce the study's 43 FINN tables byte for byte (`two-interval-v8.sha256`).
 
 - Source: https://bwi.info/Download/de/BWI-Basisdaten/ACCESS2003/ (data status
   20.03.2015, INSPIRE shapefile 02.03.2016). Pulled 2026-07-28.
-- Licence: **BWI base data: Thuenen-Institut, licensed CC BY-SA 4.0** (stated
-  by the Thuenen BWI support in the API-access correspondence of 30 July
-  2026, on which access was granted; the download page itself prints no
-  licence name). Anonymised: tract positions only as 1 km INSPIRE grid cells
+- Licence: **BWI base data: Thuenen-Institut, licensed CC BY-SA 4.0** (the
+  licence named in our API-access request to the Thuenen BWI support of
+  30 July 2026, which the support granted without objection; the download
+  page itself prints no licence name). Anonymised: tract positions only as 1 km INSPIRE grid cells
   "to protect the anonymity of the sample"
   (`_Hinweis_BWI-DatenUnterACCESS2003.pdf`). Citation as Thuenen requests
   (`Zitiervorschlag-BWI-Basisdaten-ACCESS2003-(2015).txt`):
