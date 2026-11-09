@@ -11,18 +11,21 @@ reproduce the study's 43 FINN tables byte for byte (`two-interval-v8.sha256`).
 
 - Source: https://bwi.info/Download/de/BWI-Basisdaten/ACCESS2003/ (data status
   20.03.2015, INSPIRE shapefile 02.03.2016). Pulled 2026-07-28.
-- Terms and citation: the BWI base data are published by the Thuenen
-  Institute and are publicly available without a data-use agreement,
-  anonymised (tract positions only as 1 km INSPIRE grid cells "to protect the
-  anonymity of the sample"; `_Hinweis_BWI-DatenUnterACCESS2003.pdf`). This
-  repository does not redistribute them; `run_all.R` downloads them from the
-  source. The fitted parameters are a derived model, not the data. Users who
-  rerun the calibration must cite the data as Thuenen requests
+- Licence: **BWI base data: Thuenen-Institut, licensed CC BY-SA 4.0** (stated
+  by the Thuenen BWI support in the API-access correspondence of 30 July
+  2026, on which access was granted; the download page itself prints no
+  licence name). Anonymised: tract positions only as 1 km INSPIRE grid cells
+  "to protect the anonymity of the sample"
+  (`_Hinweis_BWI-DatenUnterACCESS2003.pdf`). Citation as Thuenen requests
   (`Zitiervorschlag-BWI-Basisdaten-ACCESS2003-(2015).txt`):
   **"Thuenen-Institut, Dritte Bundeswaldinventur - Basisdaten (Stand
   20.03.2015)", https://bwi.info/Download/de/BWI-Basisdaten/ACCESS2003/**.
-  (Thuenen's field-database server software, github.com/Thuenen-Forest-Ecosystems/TFM-Server,
-  is AGPL-3.0; that licence covers the software, not the BWI data.)
+  The raw tables are not in this repository (`run_all.R` downloads them);
+  everything derived from them (fitted parameters, example stands, summary
+  tables) is released share-alike under CC BY-SA 4.0 with that attribution
+  (`inst/model/LICENSE-parameters.md`). (Thuenen's field-database server
+  software, github.com/Thuenen-Forest-Ecosystems/TFM-Server, is AGPL-3.0; that
+  licence covers the software, not the data.)
 - Files (SHA-256):
 
 | file | bytes | sha256 |
@@ -49,9 +52,9 @@ are never used or redistributed.
   `bwi-dataprep/scripts/fetch_bwi4.sh` and `fetch_bwi4_tree.sh` (all
   intervals bwi2012, ci2017, bwi2022, ci2027; the panel uses bwi2012, ci2017
   and bwi2022).
-- Terms and citation: publicly available through the API without a data-use
-  agreement; Thuenen asks for filtered queries rather than bulk extraction and
-  offers a self-hosted SQL dump for bulk use. Not redistributed here. Cite:
+- Licence and citation: **Thuenen-Institut, CC BY-SA 4.0** (as above); the API
+  is meant for filtered queries rather than bulk extraction, Thuenen offers a
+  self-hosted SQL dump for bulk use. Not redistributed here. Cite:
   **"Thuenen-Institut, Bundeswaldinventur 2022 und Kohlenstoffinventur 2017 -
   Inventurarchiv", https://ci.thuenen.de/rest/v1/** (documentation
   https://thuenen-forest-ecosystems.github.io/TFM-Documentation/). A live API:
@@ -127,3 +130,5 @@ anonymised position.
   from the stage-3 model object (sha256
   `5c046997df7f882b0cd7d12e468f1eb9a2c89f61542d557a5f089611a8f2b857`) by
   `06_extract_parameters.R`; `parameters_extraction.txt` records the check.
+  Licence of the parameters and of every BWI-derived file: CC BY-SA 4.0
+  (`inst/model/LICENSE-parameters.md`).

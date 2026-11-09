@@ -1,20 +1,19 @@
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
 ## FINNmodelBWI | calibration/09_example_sites.R
 ##
-## WHAT   Builds real example stands ON THE USER'S MACHINE from the prepared
-##        BWI data (after run_all.R or 01_stage_data_and_weights.R): a few
-##        holdout site-periods (never fitted) with their environment in NATURAL
-##        units (year 0..10, the decade's observed drought index) and their
-##        initial stand (cohorts: species, dbh, stems on the 0.1 ha patch), in
-##        the input format of the quickstart vignette.
-## WHY    The package ships no plot-level BWI-derived rows (the vignette uses a
-##        synthetic stand); this script gives users real stands for their own
-##        runs. No corner or tract identifiers, no coordinates beyond the 1 km
-##        INSPIRE cell centroid (rounded to 0.05 degrees), no person-related
-##        columns.
+## WHAT   Writes the example stands the package ships in inst/extdata (CC BY-SA
+##        4.0 with attribution to the Thuenen Institute, see
+##        inst/model/LICENSE-parameters.md): four holdout site-periods (never
+##        fitted) with their environment in NATURAL units (year 0..10, the
+##        decade's observed drought index) and their initial stand (cohorts:
+##        species, dbh, stems on the 0.1 ha patch), in the input format of the
+##        quickstart vignette.
+## WHY    Users need a worked example of the input tables on real stands. No
+##        corner or tract identifiers, no coordinates beyond the 1 km INSPIRE
+##        cell centroid (rounded to 0.05 degrees), no person-related columns.
 ## INPUT  DATA_DIR/prepared/two-interval-v8/holdout_blocked/{env_unscaled_dt, init_cohort_dt, siteID_dt, species_dt}.csv
-## OUTPUT DATA_DIR/example_sites/example_env.csv    siteID, year, mat_c, map_mm, elev_m, management, drought2, lon, lat
-##        DATA_DIR/example_sites/example_init.csv   siteID, patchID, species, species_name, dbh, trees
+## OUTPUT inst/extdata/example_env.csv    siteID, year, mat_c, map_mm, elev_m, management, drought2, lon, lat
+##        inst/extdata/example_init.csv   siteID, patchID, species, species_name, dbh, trees
 ## RUN    Rscript calibration/09_example_sites.R   (from the FINNmodelBWI repo root, seconds)
 #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
 suppressPackageStartupMessages(library(data.table))
@@ -26,7 +25,7 @@ PARAMS <- list(
   dominants    = c("Picea abies", "Fagus sylvatica", "Pinus sylvestris", "Quercus petraea"),   # one site per dominant species
   min_ba_ha    = 20, max_ba_ha = 45,      # ordinary closed stands
   coord_round  = 0.05,                    # degrees; coarser than the 1 km INSPIRE cell the BWI publishes
-  out_dir      = file.path(DATA_DIR, "example_sites"),
+  out_dir      = file.path("inst", "extdata"),   # shipped with the package
   seed         = 7L
 )
 d <- file.path(DATA_DIR, "prepared", PARAMS$prep_version, PARAMS$set)

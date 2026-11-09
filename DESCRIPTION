@@ -12,12 +12,13 @@ Description: A fitted FINN forest model calibrated to the German National Forest
     versioned simulation tool. Loads the released parameters, rebuilds the model
     with the installed FINN and simulates annual forest dynamics of 15 tree species
     for new sites, with the management intensity (regular-harvest tier) and a
-    soil-moisture drought index as user-settable covariates. The BWI base data
-    are published by the Thuenen Institute and are publicly available without a
-    data-use agreement; this package does not redistribute them (the calibration
-    scripts download them from the source), the fitted parameters are a derived
-    model, and users who rerun the calibration must cite the data as requested
-    by the Thuenen Institute (see the README and calibration/PROVENANCE.md).
+    soil-moisture drought index as user-settable covariates. The code is
+    GPL (>= 3). BWI base data: Thuenen-Institut, licensed CC BY-SA 4.0 (cite
+    "Thuenen-Institut, Dritte Bundeswaldinventur - Basisdaten (Stand 20.03.2015)"
+    and the BWI 2022 inventory archive, see the README); the fitted parameters
+    (release asset) and the BWI-derived example stands in inst/extdata are
+    released share-alike under CC BY-SA 4.0 with that attribution
+    (inst/model/LICENSE-parameters.md).
 License: GPL (>= 3)
 Encoding: UTF-8
 URL: https://github.com/FINNverse/FINN-model-BWI, https://finnverse.github.io/FINN-zoo/

@@ -54,14 +54,12 @@ covariate, pooled over the calibration data).
 covariate_table()[, c("name", "unit")]
 ```
 
-## 3. Simulate synthetic example stands under two management tiers
+## 3. Synthetic example stands under two management tiers
 
-The package ships **no plot-level inventory rows**. The stands below are
-**synthetic**: four typical German stand types with diameters and stem numbers
-chosen by hand (stems per 0.1 ha patch), on one mid-elevation site with an
-average decade and a dry 2018-2020 (`drought2` -1.2, -1.5, -1.0 in years
-7-9). Real BWI example stands can be built on your own machine after the data
-download with `calibration/09_example_sites.R` of the model repository.
+The stands below are **synthetic**: four typical German stand types with
+diameters and stem numbers chosen by hand (stems per 0.1 ha patch), on one
+mid-elevation site with an average decade and a dry 2018-2020 (`drought2`
+-1.2, -1.5, -1.0 in years 7-9). Section 4 uses real inventory stands.
 
 ```{r example}
 sp <- function(name) species_table()$species[species_table()$name == name]
@@ -102,7 +100,38 @@ legend("bottomleft", c(names(stands), "tier 0 (no harvest)", "tier 3 (> 20 %/dec
        col = c(seq_along(stands), 1, 1), lty = c(rep(1, 4), 1, 2), lwd = 2, bty = "n", ncol = 2)
 ```
 
-## 4. A drought scenario
+## 4. Real BWI example stands
+
+Four holdout corners of the inventory (never used in the fit) ship with the
+package (`inst/extdata`, CC BY-SA 4.0 with attribution to the Thünen
+Institute, see `LICENSE-parameters.md`): their 2012 stand, environment in
+natural units and the observed 2012-2022 drought index; positions as 1 km
+INSPIRE cells rounded to 0.05 degrees, no identifiers. The decade as observed
+(management tiers 0, 0, 3, 2) and with every site at tier 0 and tier 3.
+`calibration/09_example_sites.R` of the model repository rebuilds such stands
+from the prepared data.
+
+```{r real}
+env_r  <- read.csv(system.file("extdata", "example_env.csv",  package = "FINNmodelBWI"))
+init_r <- data.table::fread(system.file("extdata", "example_init.csv", package = "FINNmodelBWI"))   # makeInitCohorts() wants a data.table
+init_r[, treeName := paste(siteID, species, dbh, .I, sep = "_")]
+ic_r <- makeInitCohorts(init_r, Nspecies = nrow(species_table()))
+run_r <- function(tier = NULL) {
+  e <- env_r
+  if (!is.null(tier)) e$management <- tier
+  FINN.seed(1)
+  s <- simulateForest(m, env = scale_env(e), init_cohort = ic_r, patch_size = 0.1, device = "cpu")$wide$site
+  s <- as.data.frame(lapply(s, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
+  aggregate(cbind(ba_ha = ba / 0.1) ~ siteID + year, s, sum)
+}
+rec <- run_r(); r0 <- run_r(0); r3 <- run_r(3)
+dominant <- sapply(split(init_r, init_r$siteID), function(d) names(which.max(tapply(d$trees * d$dbh^2, d$species_name, sum))))
+data.frame(site = 1:4, dominant = dominant, tier_recorded = env_r$management[env_r$year == 0],
+           ba_start = round(r0$ba_ha[r0$year == 1], 1), ba_recorded = round(rec$ba_ha[rec$year == 11], 1),
+           ba_tier0 = round(r0$ba_ha[r0$year == 11], 1), ba_tier3 = round(r3$ba_ha[r3$year == 11], 1))
+```
+
+## 5. A drought scenario
 
 Set `drought2` directly: here an average climate with a three-year drought of
 -1.5 sd in years 5-7, at a mid-elevation site, from bare ground (20 patches).
@@ -120,7 +149,7 @@ plot(ba_ha ~ year, tot, type = "l", lwd = 2, xlab = "year", ylab = "basal area (
 abline(v = c(5, 7), lty = 3)
 ```
 
-## 5. What to keep in mind
+## 6. What to keep in mind
 
 * Units: `dbh` in cm, `ba` in m2 and `trees` as stems **per 0.1 ha patch**
   (divide by 0.1 for per hectare); `growth` is the relative diameter increment

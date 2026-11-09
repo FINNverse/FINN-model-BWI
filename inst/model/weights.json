@@ -5,6 +5,7 @@
       "file": "parameters.pt",
       "url": "",
       "sha256": "dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7",
+      "license": "CC BY-SA 4.0 (share-alike of the BWI base data, Thuenen-Institut; see LICENSE-parameters.md)",
       "finn_commit": "0848b60",
       "finn_commit_fitted": "6705a50",
       "weight_scale": "raw",

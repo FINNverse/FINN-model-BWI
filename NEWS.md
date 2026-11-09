@@ -22,10 +22,11 @@ First fitted model, variant `linear`:
   `calibration/validation/report.md`.
 * Release asset `parameters.pt` (sha256 in `inst/model/weights.json`), a named
   list of parameter tensors rebuilt by `build_model()`.
-* No plot-level BWI rows are shipped (species table and summary counts only);
-  the quickstart uses a synthetic stand, `calibration/09_example_sites.R`
-  builds real stands locally after the data download. Data citation as the
-  Thuenen Institute requests (README, PROVENANCE.md).
+* Licences: code GPL (>= 3); BWI base data Thuenen-Institut CC BY-SA 4.0, so
+  the fitted parameters and the four BWI-derived example stands in
+  `inst/extdata` are released share-alike under CC BY-SA 4.0 with the
+  attribution in `inst/model/LICENSE-parameters.md`. The quickstart runs
+  synthetic stand types and the real example stands.
 
 # FINNmodelBWI (development)
 
