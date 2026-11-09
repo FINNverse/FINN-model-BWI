@@ -15,7 +15,7 @@ through the environment). `run_all.R` runs the whole chain in order:
 | 7 | `04_fit_stage3.R` | stage 3: regeneration + Beverton-Holt cap from the epoch-700 checkpoint, `weight_scale = "raw"` | ~30 min |
 | 8 | `06_extract_parameters.R` | `parameters.pt` (named list of tensors, the release asset) + reproduction check of `build_model()` | 1 min |
 | 9 | `05_validation.R` | holdout metrics and figures (`validation/`) from the rebuilt model | 1 min |
-| 10 | `09_example_sites.R` | `inst/extdata` example sites | seconds |
+| 10 | `09_example_sites.R` | real example stands written to `FINN-zoo-data/bwi/example_sites/` on the user's machine (not shipped; the vignette uses a synthetic stand) | seconds |
 | - | `08_quickstart_check.R` | the vignette's quickstart as a plain script | seconds |
 
 Outputs that are committed: `PREPARATION.md`, `PROVENANCE.md`,

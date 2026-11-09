@@ -34,5 +34,15 @@ calibration pipeline that produced each release is in `calibration/`
 (`run_all.R` runs it end to end from the public sources; `PROVENANCE.md` lists
 every raw layer with licence and checksum).
 
-License: GPL (>= 3) for code and fitted parameters; the calibration data keep
-the licence of their source (see `calibration/PROVENANCE.md` and the model card).
+License: GPL (>= 3) for code and fitted parameters. The BWI base data are
+published by the Thünen Institute and are publicly available without a
+data-use agreement. This repository does not redistribute them;
+`calibration/` downloads them from the source. The fitted parameters are a
+derived model, not the data. Users who rerun the calibration must cite the
+data as Thünen requests: "Thünen-Institut, Dritte Bundeswaldinventur –
+Basisdaten (Stand 20.03.2015)", https://bwi.info/Download/de/BWI-Basisdaten/ACCESS2003/,
+and "Thünen-Institut, Bundeswaldinventur 2022 und Kohlenstoffinventur 2017 –
+Inventurarchiv", https://ci.thuenen.de/rest/v1/. Climate normals: WorldClim
+2.1, Fick & Hijmans (2017) Int. J. Climatol. 37, 4302–4315,
+doi:10.1002/joc.5086; drought grids: Deutscher Wetterdienst CDC (CC BY 4.0).
+Details in `calibration/PROVENANCE.md`.

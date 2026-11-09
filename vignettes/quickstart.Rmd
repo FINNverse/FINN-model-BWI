@@ -54,40 +54,52 @@ covariate, pooled over the calibration data).
 covariate_table()[, c("name", "unit")]
 ```
 
-## 3. Simulate the example stands under two management tiers
+## 3. Simulate synthetic example stands under two management tiers
 
-Four holdout corners of the inventory (never used in the fit) ship with the
-package: their 2012 stand and the observed 2012-2022 drought index. We
-simulate the decade as observed and with every site at tier 0 and tier 3.
+The package ships **no plot-level inventory rows**. The stands below are
+**synthetic**: four typical German stand types with diameters and stem numbers
+chosen by hand (stems per 0.1 ha patch), on one mid-elevation site with an
+average decade and a dry 2018-2020 (`drought2` -1.2, -1.5, -1.0 in years
+7-9). Real BWI example stands can be built on your own machine after the data
+download with `calibration/09_example_sites.R` of the model repository.
 
 ```{r example}
-env  <- read.csv(system.file("extdata", "example_env.csv",  package = "FINNmodelBWI"))
-init <- data.table::fread(system.file("extdata", "example_init.csv", package = "FINNmodelBWI"))   # makeInitCohorts() wants a data.table
-init[, treeName := paste(siteID, species, dbh, .I, sep = "_")]
+sp <- function(name) species_table()$species[species_table()$name == name]
+stands <- list(
+  spruce        = data.frame(species = sp("Picea abies"),      dbh = c(45, 35, 25, 15), trees = c(8, 14, 18, 10)),
+  beech         = data.frame(species = sp("Fagus sylvatica"),  dbh = c(55, 40, 28, 16), trees = c(5, 9, 14, 20)),
+  pine_birch    = data.frame(species = c(rep(sp("Pinus sylvestris"), 3), sp("Betula pendula")), dbh = c(38, 30, 22, 14), trees = c(12, 18, 16, 10)),
+  oak_hornbeam  = data.frame(species = c(rep(sp("Quercus petraea"), 3), sp("Carpinus betulus")), dbh = c(50, 36, 24, 12), trees = c(6, 10, 12, 25)))
+init <- data.table::rbindlist(lapply(seq_along(stands), function(i) cbind(siteID = i, patchID = 1L, stands[[i]])))
+init[, treeName := paste(siteID, species, dbh, sep = "_")]
 init_cohort <- makeInitCohorts(init, Nspecies = nrow(species_table()))
 
-run <- function(tier = NULL) {
-  e <- env
-  if (!is.null(tier)) e$management <- tier
+env <- data.table::CJ(siteID = seq_along(stands), year = 0:10)
+env[, `:=`(mat_c = 8.0, map_mm = 800, elev_m = 400, management = 0,
+           drought2 = c(0, 0, 0, 0, 0, 0, 0, -1.2, -1.5, -1.0, 0)[year + 1])]
+
+run <- function(tier) {
+  e <- data.table::copy(env)[, management := tier]
   FINN.seed(1)
   s <- simulateForest(m, env = scale_env(e), init_cohort = init_cohort, patch_size = 0.1, device = "cpu")$wide$site
   s <- as.data.frame(lapply(s, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
   aggregate(cbind(ba_ha = ba / 0.1, stems_ha = trees / 0.1) ~ siteID + year, s, sum)
 }
-obs   <- run()          # management as recorded (0, 0, 3, 2 for the four sites)
 tier0 <- run(0)
 tier3 <- run(3)
-end <- function(x) x[x$year == 11, c("siteID", "ba_ha", "stems_ha")]
-cbind(end(obs), tier0 = end(tier0)$ba_ha, tier3 = end(tier3)$ba_ha)
+start <- tier0[tier0$year == 1, c("siteID", "ba_ha")]
+end   <- function(x) x[x$year == 11, "ba_ha"]
+data.frame(stand = names(stands), ba_start = round(start$ba_ha, 1), ba_tier0 = round(end(tier0), 1), ba_tier3 = round(end(tier3), 1))
 ```
 
 ```{r plot-example}
 plot(NA, xlim = c(1, 11), ylim = c(0, max(tier0$ba_ha) * 1.05), xlab = "simulated year", ylab = "basal area (m2/ha)")
-for (s in unique(obs$siteID)) {
+for (s in seq_along(stands)) {
   lines(ba_ha ~ year, tier0[tier0$siteID == s, ], col = s, lwd = 2)
   lines(ba_ha ~ year, tier3[tier3$siteID == s, ], col = s, lwd = 2, lty = 2)
 }
-legend("bottomleft", c("tier 0 (no harvest)", "tier 3 (> 20 %/decade)"), lty = 1:2, bty = "n")
+legend("bottomleft", c(names(stands), "tier 0 (no harvest)", "tier 3 (> 20 %/decade)"),
+       col = c(seq_along(stands), 1, 1), lty = c(rep(1, 4), 1, 2), lwd = 2, bty = "n", ncol = 2)
 ```
 
 ## 4. A drought scenario

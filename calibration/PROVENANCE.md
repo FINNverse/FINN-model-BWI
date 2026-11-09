@@ -11,20 +11,18 @@ reproduce the study's 43 FINN tables byte for byte (`two-interval-v8.sha256`).
 
 - Source: https://bwi.info/Download/de/BWI-Basisdaten/ACCESS2003/ (data status
   20.03.2015, INSPIRE shapefile 02.03.2016). Pulled 2026-07-28.
-- Licence / terms: the download page and the accompanying notice
-  (`_Hinweis_BWI-DatenUnterACCESS2003.pdf`) state no licence name. The
-  *erweiterter Grunddatensatz* is published for third-party use without a
-  data-use agreement, anonymised (tract positions only as 1 km INSPIRE grid
-  cells "to protect the anonymity of the sample"), with a citation request
-  (`Zitiervorschlag-BWI-Basisdaten-ACCESS2003-(2015).txt`): "Thuenen-Institut,
-  Dritte Bundeswaldinventur - Basisdaten (Stand 20.03.2015)". The bwi.info
-  site footer reads "(c) Thuenen-Institut, CC BY 4.0". GovData lists Thuenen
-  BWI-related datasets under "Datenlizenz Deutschland Namensnennung 2.0" and
-  CC BY 4.0, but no catalogue record for the base data themselves was found
-  (checked 2026-11-09). **Open: the exact licence name of the base data must
-  be confirmed by the coordinator (dl-de/by-2-0 vs CC BY 4.0); we cite the
-  Thuenen citation text either way and redistribute nothing from the raw
-  tables except derived, anonymised example stands (1 km cells, no names).**
+- Terms and citation: the BWI base data are published by the Thuenen
+  Institute and are publicly available without a data-use agreement,
+  anonymised (tract positions only as 1 km INSPIRE grid cells "to protect the
+  anonymity of the sample"; `_Hinweis_BWI-DatenUnterACCESS2003.pdf`). This
+  repository does not redistribute them; `run_all.R` downloads them from the
+  source. The fitted parameters are a derived model, not the data. Users who
+  rerun the calibration must cite the data as Thuenen requests
+  (`Zitiervorschlag-BWI-Basisdaten-ACCESS2003-(2015).txt`):
+  **"Thuenen-Institut, Dritte Bundeswaldinventur - Basisdaten (Stand
+  20.03.2015)", https://bwi.info/Download/de/BWI-Basisdaten/ACCESS2003/**.
+  (Thuenen's field-database server software, github.com/Thuenen-Forest-Ecosystems/TFM-Server,
+  is AGPL-3.0; that licence covers the software, not the BWI data.)
 - Files (SHA-256):
 
 | file | bytes | sha256 |
@@ -51,11 +49,15 @@ are never used or redistributed.
   `bwi-dataprep/scripts/fetch_bwi4.sh` and `fetch_bwi4_tree.sh` (all
   intervals bwi2012, ci2017, bwi2022, ci2027; the panel uses bwi2012, ci2017
   and bwi2022).
-- Licence / terms: no licence statement on the API documentation; Thuenen asks
-  for filtered queries rather than bulk extraction and offers a self-hosted SQL
-  dump for bulk use. A live API: the data "may change subsequently due to
-  corrections for quality assurance", so a rerun compares the sha256 below and
-  reports differences (`run_all.R` step 1b).
+- Terms and citation: publicly available through the API without a data-use
+  agreement; Thuenen asks for filtered queries rather than bulk extraction and
+  offers a self-hosted SQL dump for bulk use. Not redistributed here. Cite:
+  **"Thuenen-Institut, Bundeswaldinventur 2022 und Kohlenstoffinventur 2017 -
+  Inventurarchiv", https://ci.thuenen.de/rest/v1/** (documentation
+  https://thuenen-forest-ecosystems.github.io/TFM-Documentation/). A live API:
+  the data "may change subsequently due to corrections for quality assurance",
+  so a rerun compares the sha256 below and reports differences (`run_all.R`
+  step 1b).
 - Files (SHA-256), `data/raw/bwi4/`:
 
 | file | rows | sha256 |
@@ -88,16 +90,19 @@ are never used or redistributed.
 
 ## 4. Climate normals and elevation fallback: WorldClim 2.1
 
-- Source: https://www.worldclim.org (Fick & Hijmans 2017), 30 arc-second
-  bioclimatic variables BIO1 (annual mean temperature) and BIO12 (annual
-  precipitation), 1970-2000; `wc2.1_30s_elev.tif` as the elevation fallback
-  where the inventory has no tract elevation. Rasters dated 2019-02-28; the
-  copy used was downloaded 2025-09-09.
-- Licence: WorldClim states "freely available for academic use and other
+- Source: WorldClim 2.1, https://www.worldclim.org, 30 arc-second bioclimatic
+  variables BIO1 (annual mean temperature) and BIO12 (annual precipitation),
+  1970-2000; `wc2.1_30s_elev.tif` as the elevation fallback where the
+  inventory has no tract elevation. Rasters dated 2019-02-28; the copy used
+  was downloaded 2025-09-09.
+- Citation: Fick, S.E. & Hijmans, R.J. (2017) WorldClim 2: new 1-km spatial
+  resolution climate surfaces for global land areas. International Journal of
+  Climatology 37, 4302-4315, doi:10.1002/joc.5086.
+- Terms: WorldClim states "freely available for academic use and other
   non-commercial use. Redistribution or commercial use is not allowed without
   prior permission." The rasters are therefore not shipped; `run_all.R`
-  downloads them. The derived site values (two numbers per site) are part of
-  the prepared data.
+  downloads them. The values extracted at the site locations (two numbers per
+  site) are part of the prepared data.
 - SHA-256: `wc2.1_30s_bio_1.tif`
   `382c991cea4a20b42e345fcd5a897788feee05bc0d613dec032ff0cad1f4c375`,
   `wc2.1_30s_bio_12.tif`

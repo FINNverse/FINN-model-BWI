@@ -169,5 +169,5 @@ step("3d 03 stage 2 inverse calibration (~6 h single-threaded)", file.path(DATA_
 step("3e 04 stage 3 regeneration + cap (~30 min)", file.path(DATA_DIR, "fits", "stage3", "model.pt"), rscript(file.path("calibration", "04_fit_stage3.R")))
 step("3f 06 parameter list = release asset", file.path(DATA_DIR, "weights", "v0.1.0", "parameters.pt"), rscript(file.path("calibration", "06_extract_parameters.R")))
 step("3g 05 holdout validation", file.path("calibration", "validation", "metrics.csv"), rscript(file.path("calibration", "05_validation.R")))
-step("3h 09 example sites for inst/extdata", file.path("inst", "extdata", "example_env.csv"), rscript(file.path("calibration", "09_example_sites.R")))
+step("3h 09 real example stands (local, not shipped)", file.path(DATA_DIR, "example_sites", "example_env.csv"), rscript(file.path("calibration", "09_example_sites.R")))
 message("all steps done ", format(Sys.time(), "%Y-%m-%d %H:%M"))

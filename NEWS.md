@@ -22,6 +22,10 @@ First fitted model, variant `linear`:
   `calibration/validation/report.md`.
 * Release asset `parameters.pt` (sha256 in `inst/model/weights.json`), a named
   list of parameter tensors rebuilt by `build_model()`.
+* No plot-level BWI rows are shipped (species table and summary counts only);
+  the quickstart uses a synthetic stand, `calibration/09_example_sites.R`
+  builds real stands locally after the data download. Data citation as the
+  Thuenen Institute requests (README, PROVENANCE.md).
 
 # FINNmodelBWI (development)
 
