@@ -1,0 +1,10 @@
+source_model: model.pt
+source_model_sha256: 5c046997df7f882b0cd7d12e468f1eb9a2c89f61542d557a5f089611a8f2b857
+parameters_pt_sha256: dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7
+finn_version: 0.2.0
+torch_version: 0.15.1
+extracted: 2026-11-09 22:16 CET
+reproduction_check_growth_year1: 0
+reproduction_check_mort_year1: 0
+reproduction_check_ba_total_end_rel: 0.00313
+reproduction_check_trees_total_end_rel: 0.00291

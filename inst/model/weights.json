@@ -1,13 +1,19 @@
 {
   "variants": {
-    "process": {
-      "tag": "v0.0.0.9000",
+    "linear": {
+      "tag": "v0.1.0",
       "file": "parameters.pt",
       "url": "",
-      "sha256": "",
+      "sha256": "dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7",
       "finn_commit": "0848b60",
-      "patches": null,
-      "patch_size": null
+      "finn_commit_fitted": "6705a50",
+      "weight_scale": "raw",
+      "data_version": "two-interval-v8",
+      "patches": 20,
+      "patch_size": 0.1,
+      "theta_sim_factor": 3.5,
+      "covariates": ["mat_c", "map_mm", "elev_m", "management", "drought2"],
+      "notes": "Parameters of the staged fit (stage 1 prefit -> stage 2 inverse calibration, epoch 700 of 1000 -> stage 3 regeneration with a fitted Beverton-Holt cap) on two-interval-v8/train. Fitted with FINN 0.2.0 release candidate 6705a50 (fast-setup + F1); extracted as a named parameter list and validated with FINN 0.2.0 main 0848b60, under which fit(weight_scale = 'raw') reproduces the fit objective. url is filled by the release; until then load_model(path = <local parameters.pt>)."
     }
   }
 }

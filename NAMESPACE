@@ -1,4 +1,6 @@
+export(covariate_table)
 export(load_model)
 export(model_info)
+export(scale_env)
 export(simulate_model)
 export(species_table)

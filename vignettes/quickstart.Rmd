@@ -1,0 +1,126 @@
+---
+title: "Quickstart: simulate German forests with FINNmodelBWI"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quickstart: simulate German forests with FINNmodelBWI}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+## The vignette runs when the parameter file is available: either the release
+## asset (load_model() downloads it) or a local copy given in FINNMODELBWI_PARAMETERS.
+local_pt <- Sys.getenv("FINNMODELBWI_PARAMETERS", unset = "")
+can_run <- nzchar(local_pt) || nzchar(FINNmodelBWI::model_info()[[1]]$url)
+knitr::opts_chunk$set(eval = can_run)
+```
+
+## 1. Load the model
+
+The package ships the model *definition* (`build_model()`) and the release
+metadata; the fitted parameters are a small file (`parameters.pt`, a named list
+of parameter tensors) that `load_model()` downloads once and checks against its
+sha256. The model is rebuilt with the installed FINN (0.2.0 or later).
+
+```{r load}
+library(FINNmodelBWI)
+library(FINN)
+library(torch)
+torch_set_num_threads(1L)
+m <- if (nzchar(local_pt)) load_model(path = local_pt) else load_model()
+species_table()
+```
+
+## 2. The inputs: five covariates, natural units
+
+`covariate_table()` says where each covariate comes from and how to derive it
+for a new site. Two of them are *settings* rather than measurements:
+
+* `management`: the regular-harvest tier of the stand, 0 (no harvest), 1
+  (up to 5 % of the start basal area removed per decade), 2 (5-20 %) or 3
+  (more than 20 %). It shifts growth, mortality and recruitment by
+  species-specific slopes. In the calibration it is derived from the same
+  decade's removals, so treat it as a sensitivity: report results over tiers
+  0 to 3 rather than for one tier.
+* `drought2`: the two-year soil-moisture anomaly, 0 = average year, about -1 =
+  a dry year like 2003 or 2018 at most German sites, -1.5 to -2.3 = the driest
+  site-years of the calibration. Env row `k` drives simulated year `k + 1`.
+
+`scale_env()` applies the model's scaling constants (one mean and sd per
+covariate, pooled over the calibration data).
+
+```{r covariates}
+covariate_table()[, c("name", "unit")]
+```
+
+## 3. Simulate the example stands under two management tiers
+
+Four holdout corners of the inventory (never used in the fit) ship with the
+package: their 2012 stand and the observed 2012-2022 drought index. We
+simulate the decade as observed and with every site at tier 0 and tier 3.
+
+```{r example}
+env  <- read.csv(system.file("extdata", "example_env.csv",  package = "FINNmodelBWI"))
+init <- data.table::fread(system.file("extdata", "example_init.csv", package = "FINNmodelBWI"))   # makeInitCohorts() wants a data.table
+init[, treeName := paste(siteID, species, dbh, .I, sep = "_")]
+init_cohort <- makeInitCohorts(init, Nspecies = nrow(species_table()))
+
+run <- function(tier = NULL) {
+  e <- env
+  if (!is.null(tier)) e$management <- tier
+  FINN.seed(1)
+  s <- simulateForest(m, env = scale_env(e), init_cohort = init_cohort, patch_size = 0.1, device = "cpu")$wide$site
+  s <- as.data.frame(lapply(s, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
+  aggregate(cbind(ba_ha = ba / 0.1, stems_ha = trees / 0.1) ~ siteID + year, s, sum)
+}
+obs   <- run()          # management as recorded (0, 0, 3, 2 for the four sites)
+tier0 <- run(0)
+tier3 <- run(3)
+end <- function(x) x[x$year == 11, c("siteID", "ba_ha", "stems_ha")]
+cbind(end(obs), tier0 = end(tier0)$ba_ha, tier3 = end(tier3)$ba_ha)
+```
+
+```{r plot-example}
+plot(NA, xlim = c(1, 11), ylim = c(0, max(tier0$ba_ha) * 1.05), xlab = "simulated year", ylab = "basal area (m2/ha)")
+for (s in unique(obs$siteID)) {
+  lines(ba_ha ~ year, tier0[tier0$siteID == s, ], col = s, lwd = 2)
+  lines(ba_ha ~ year, tier3[tier3$siteID == s, ], col = s, lwd = 2, lty = 2)
+}
+legend("bottomleft", c("tier 0 (no harvest)", "tier 3 (> 20 %/decade)"), lty = 1:2, bty = "n")
+```
+
+## 4. A drought scenario
+
+Set `drought2` directly: here an average climate with a three-year drought of
+-1.5 sd in years 5-7, at a mid-elevation site, from bare ground (20 patches).
+
+```{r drought}
+site <- data.frame(siteID = 1L, year = 0:40, mat_c = 7.5, map_mm = 850, elev_m = 450, management = 0)
+site$drought2 <- ifelse(site$year %in% 5:7, -1.5, 0)
+FINN.seed(2)
+bare <- simulateForest(m, env = scale_env(site), init_cohort = NULL, patches = 20L, patch_size = 0.1, device = "cpu")$wide$site
+bare <- as.data.frame(lapply(bare, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
+tot <- aggregate(cbind(ba_ha = ba / 0.1) ~ year, bare, sum)
+top <- aggregate(ba ~ species, bare[bare$year == 40, ], sum)
+merge(top[order(-top$ba), ][1:4, ], species_table(), by = "species")
+plot(ba_ha ~ year, tot, type = "l", lwd = 2, xlab = "year", ylab = "basal area (m2/ha)", main = "bare ground, drought in years 5-7")
+abline(v = c(5, 7), lty = 3)
+```
+
+## 5. What to keep in mind
+
+* Units: `dbh` in cm, `ba` in m2 and `trees` as stems **per 0.1 ha patch**
+  (divide by 0.1 for per hectare); `growth` is the relative diameter increment
+  per year; `mort` the annual removal probability; `r_mean_ha` recruits per ha.
+* Recruits enter at 7 cm dbh (the inventory's caliper threshold). The
+  recruitment level is about twice the ingrowth that the angle-count sample
+  implies for the first decade (a documented choice of the data preparation,
+  see the model card), so stem numbers of small trees run high.
+* The model has no density-dependent mortality beyond light competition and no
+  bark-beetle process; long bare-ground runs settle at 40-45 m2/ha dominated
+  by beech, and the drought response is a logit-linear extrapolation beyond
+  `drought2` of about -2.3.
+* Mortality means *removal* (natural death plus harvest). The management tier
+  does not cut trees; it raises the removal rate.
+```
