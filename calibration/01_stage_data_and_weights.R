@@ -47,7 +47,7 @@ SOURCE_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-bwi"), file.path(
 if (is.na(SOURCE_DIR)) stop("FINN-bwi (or the unpacked data deposit) not found next to the FINN-zoo checkout")
 
 PARAMS <- list(
-  prep_version = "two-interval-v8",                     # the data version the paper's candidates are fitted on (PREPARATION.md)
+  prep_version = "two-interval-v12",                    # v8 without the spurious env row year 0 (PREPARATION.md): 10 env rows = 10 annual transitions per decade
   sets         = c("train", "holdout_blocked", "pilot", "national"),   # train = fitted sites, holdout_blocked = spatially blocked holdout, pilot = 2 k site-periods for smoke tests, national = every site-period (expected_preparation.csv, drought-by-tier experiments)
   release      = "v0.1.0",                              # the model repo's semver release tag (= weights folder name = GitHub release)
   ## the candidate (pending the final choice): linear, single drought index drought2, fitted recruitment cap, data v8

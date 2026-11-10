@@ -45,7 +45,11 @@ for a new site. Two of them are *settings* rather than measurements:
   0 to 3 rather than for one tier.
 * `drought2`: the two-year soil-moisture anomaly, 0 = average year, about -1 =
   a dry year like 2003 or 2018 at most German sites, -1.5 to -2.3 = the driest
-  site-years of the calibration. Env row `k` drives simulated year `k + 1`.
+  site-years of the calibration.
+
+`env` has one row per site and annual transition (`year` = 1, 2, ...): row `k`
+drives simulated year `k`. The initial state is the init cohort; there is no
+year-0 row.
 
 `scale_env()` applies the model's scaling constants (one mean and sd per
 covariate, pooled over the calibration data).
@@ -72,9 +76,9 @@ init <- data.table::rbindlist(lapply(seq_along(stands), function(i) cbind(siteID
 init[, treeName := paste(siteID, species, dbh, sep = "_")]
 init_cohort <- makeInitCohorts(init, Nspecies = nrow(species_table()))
 
-env <- data.table::CJ(siteID = seq_along(stands), year = 0:10)
+env <- data.table::CJ(siteID = seq_along(stands), year = 1:10)
 env[, `:=`(mat_c = 8.0, map_mm = 800, elev_m = 400, management = 0,
-           drought2 = c(0, 0, 0, 0, 0, 0, 0, -1.2, -1.5, -1.0, 0)[year + 1])]
+           drought2 = c(0, 0, 0, 0, 0, 0, -1.2, -1.5, -1.0, 0)[year])]
 
 run <- function(tier) {
   e <- data.table::copy(env)[, management := tier]
@@ -85,13 +89,13 @@ run <- function(tier) {
 }
 tier0 <- run(0)
 tier3 <- run(3)
-start <- tier0[tier0$year == 1, c("siteID", "ba_ha")]
-end   <- function(x) x[x$year == 11, "ba_ha"]
+start <- tier0[tier0$year == 1, c("siteID", "ba_ha")]   # after the first annual step
+end   <- function(x) x[x$year == 10, "ba_ha"]
 data.frame(stand = names(stands), ba_start = round(start$ba_ha, 1), ba_tier0 = round(end(tier0), 1), ba_tier3 = round(end(tier3), 1))
 ```
 
 ```{r plot-example}
-plot(NA, xlim = c(1, 11), ylim = c(0, max(tier0$ba_ha) * 1.05), xlab = "simulated year", ylab = "basal area (m2/ha)")
+plot(NA, xlim = c(1, 10), ylim = c(0, max(tier0$ba_ha) * 1.05), xlab = "simulated year", ylab = "basal area (m2/ha)")
 for (s in seq_along(stands)) {
   lines(ba_ha ~ year, tier0[tier0$siteID == s, ], col = s, lwd = 2)
   lines(ba_ha ~ year, tier3[tier3$siteID == s, ], col = s, lwd = 2, lty = 2)
@@ -105,8 +109,9 @@ legend("bottomleft", c(names(stands), "tier 0 (no harvest)", "tier 3 (> 20 %/dec
 Four holdout corners of the inventory (never used in the fit) ship with the
 package (`inst/extdata`, CC BY-SA 4.0 with attribution to the Thünen
 Institute, see `LICENSE-parameters.md`): their 2012 stand, environment in
-natural units and the observed 2012-2022 drought index; positions as 1 km
-INSPIRE cells rounded to 0.05 degrees, no identifiers. The decade as observed
+natural units (years 1-10, one row per annual transition) and the observed
+2012-2022 drought index; positions as 1 km INSPIRE cells rounded to 0.05
+degrees, no identifiers. The decade as observed
 (management tiers 0, 0, 3, 2) and with every site at tier 0 and tier 3.
 `calibration/09_example_sites.R` of the model repository rebuilds such stands
 from the prepared data.
@@ -126,9 +131,9 @@ run_r <- function(tier = NULL) {
 }
 rec <- run_r(); r0 <- run_r(0); r3 <- run_r(3)
 dominant <- sapply(split(init_r, init_r$siteID), function(d) names(which.max(tapply(d$trees * d$dbh^2, d$species_name, sum))))
-data.frame(site = 1:4, dominant = dominant, tier_recorded = env_r$management[env_r$year == 0],
-           ba_start = round(r0$ba_ha[r0$year == 1], 1), ba_recorded = round(rec$ba_ha[rec$year == 11], 1),
-           ba_tier0 = round(r0$ba_ha[r0$year == 11], 1), ba_tier3 = round(r3$ba_ha[r3$year == 11], 1))
+data.frame(site = 1:4, dominant = dominant, tier_recorded = env_r$management[env_r$year == 1],
+           ba_start = round(r0$ba_ha[r0$year == 1], 1), ba_recorded = round(rec$ba_ha[rec$year == 10], 1),
+           ba_tier0 = round(r0$ba_ha[r0$year == 10], 1), ba_tier3 = round(r3$ba_ha[r3$year == 10], 1))
 ```
 
 ## 5. A drought scenario
@@ -137,7 +142,7 @@ Set `drought2` directly: here an average climate with a three-year drought of
 -1.5 sd in years 5-7, at a mid-elevation site, from bare ground (20 patches).
 
 ```{r drought}
-site <- data.frame(siteID = 1L, year = 0:40, mat_c = 7.5, map_mm = 850, elev_m = 450, management = 0)
+site <- data.frame(siteID = 1L, year = 1:40, mat_c = 7.5, map_mm = 850, elev_m = 450, management = 0)
 site$drought2 <- ifelse(site$year %in% 5:7, -1.5, 0)
 FINN.seed(2)
 bare <- simulateForest(m, env = scale_env(site), init_cohort = NULL, patches = 20L, patch_size = 0.1, device = "cpu")$wide$site

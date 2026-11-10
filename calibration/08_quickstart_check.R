@@ -38,8 +38,9 @@ scales  <- fread(file.path("inst", "model", "env_scales.csv"))
 zs <- function(v, x) (x - scales[variable == v, mean]) / scales[variable == v, sd]   # natural -> model scale (what scale_env() does)
 
 ## ---- 2. environment: one site, 30 years, two management tiers ----------------------
-## env row k drives simulated year k + 1; year 0 is the initial state.
-env <- CJ(siteID = seq_along(PARAMS$tiers), year = 0:PARAMS$years)
+## one env row per annual transition: row k drives simulated year k; the initial
+## state is the init cohort (there is no year-0 env row).
+env <- CJ(siteID = seq_along(PARAMS$tiers), year = seq_len(PARAMS$years))
 for (v in names(PARAMS$site)) env[, (v) := zs(v, PARAMS$site[[v]])]
 env[, management := zs("management", PARAMS$tiers[siteID])]
 env[, drought2 := zs("drought2", fifelse(year %in% PARAMS$drought_years, -1.5, 0))]
@@ -59,7 +60,7 @@ S <- merge(S, species, by = "species")[, tier := PARAMS$tiers[siteID]]
 cat("\nBasal area (m2/ha) of the given stand, years 1, 10, 20, 30, by management tier:\n")
 print(dcast(S[year %in% c(1, 10, 20, 30), .(ba_ha = round(sum(ba) / PARAMS$patch_size_ha, 1)), by = .(tier, year)], tier ~ year, value.var = "ba_ha"))
 cat("\nMean annual removal probability of Picea abies in the drought years vs before, by tier:\n")
-print(S[name == "Picea abies" & trees > 0, .(before = mean(mort[year %in% 11:17]), drought = mean(mort[year %in% (PARAMS$drought_years + 1L)])), by = tier])
+print(S[name == "Picea abies" & trees > 0, .(before = mean(mort[year %in% 11:17]), drought = mean(mort[year %in% PARAMS$drought_years])), by = tier])
 
 ## ---- 3b. from bare ground: 20 patches, no initial stand ------------------------------
 FINN.seed(PARAMS$seed)

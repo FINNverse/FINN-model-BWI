@@ -44,8 +44,10 @@ PARAMS <- list(
                        "Zitiervorschlag-BWI-Basisdaten-ACCESS2003-(2015).txt", "_Hinweis_BWI-DatenUnterACCESS2003.pdf"),
   worldclim_base  = "https://geodata.ucdavis.edu/climate/worldclim/2_1/base",   # wc2.1_30s_bio.zip (10.4 GB), wc2.1_30s_elev.zip
   threads         = "1",                 # technical: single-threaded torch, reproducible timing
-  prep_version    = "two-interval-v8",
-  expected_sha    = file.path("calibration", "two-interval-v8.sha256"),      # the study's manifest of the 46 prepared files
+  base_version    = "two-interval-v8",   # what bwi-dataprep scripts/71 writes (env years 0..10)
+  prep_version    = "two-interval-v12",  # = v8 without env row year 0 (prep/148_*.R): one env row per annual transition, census after 10 steps
+  base_sha        = file.path("calibration", "two-interval-v8.sha256"),      # the study's manifest of the 46 v8 files
+  expected_sha    = file.path("calibration", "two-interval-v12.sha256"),     # the study's manifest of the 47 v12 files
   expected_table  = file.path("calibration", "expected_preparation.csv"),    # summary table a rerun is diffed against (07)
   provenance_sha  = file.path("calibration", "provenance_sha256.txt")        # sha256 of every raw file as pulled for the release
 )
@@ -150,15 +152,24 @@ step("2g 04 FINN inputs, SECOND pass (with drought)", character(0), in_dir(PREP,
 run_prep("2h 40 BWI3->BWI4 tree panel (archive schema)", "outputs/new_schema/panel.csv", "40_import_new_schema.R")
 run_prep("2i 70 two-interval-v3 (its split_blocks.csv is reused by v8)", "outputs/prepared/two-interval-v3/split_blocks.csv", "70_prepare_two_interval.R")
 run_prep("2j 91 decade-2 panel with the fates fixed", "outputs/new_schema_chained/panel.csv", "91_import_new_schema_chained.R")
-run_prep("2k 71 two-interval-v8", file.path("outputs", "prepared", PARAMS$prep_version, "PREPARATION.md"), "71_prepare_two_interval_v8.R")
-step("2l v8 against the study's manifest", character(0), {
-  man <- readLines(PARAMS$expected_sha)
+run_prep("2k 71 two-interval-v8 (env years 0..10)", file.path("outputs", "prepared", PARAMS$base_version, "PREPARATION.md"), "71_prepare_two_interval_v8.R")
+check_manifest <- function(version, manifest) {
+  man <- readLines(manifest)
   ref <- data.table(sha = sub("^([0-9a-f]{64}) .*$", "\\1", man), path = sub("^[0-9a-f]{64} +\\./", "", man))
-  ref[, now := sapply(file.path(PREP, "outputs", "prepared", PARAMS$prep_version, path), function(p) if (file.exists(p)) digest::digest(p, algo = "sha256", file = TRUE) else NA_character_)]
+  ref[, now := sapply(file.path(PREP, "outputs", "prepared", version, path), function(p) if (file.exists(p)) digest::digest(p, algo = "sha256", file = TRUE) else NA_character_)]
   bad <- ref[is.na(now) | now != sha]
-  message(sprintf("%d of %d prepared files identical to the study's", nrow(ref) - nrow(bad), nrow(ref)))
+  message(sprintf("%s: %d of %d prepared files identical to the study's", version, nrow(ref) - nrow(bad), nrow(ref)))
   if (nrow(bad)) message("differ: ", paste(bad$path, collapse = ", "), " (split_blocks.csv differs by design, see bwi-dataprep README)")
-})
+}
+step("2l v8 against the study's manifest", character(0), check_manifest(PARAMS$base_version, PARAMS$base_sha))
+## v12 = v8 without the env row year 0. FINN has no initial-state env row: every
+## env row drives one annual transition and the initial state is init_cohort_dt,
+## so the v8 layout (years 0..10) made fit() score the census after 11
+## transitions for a 10-year interval. v12 keeps env years 1..10 (the rate
+## windows are unchanged); the local copy of the study's scripts/148 does it.
+step("2m 148 two-interval-v12 (drop env row year 0)", file.path(PREP, "outputs", "prepared", PARAMS$prep_version, "PREPARATION.md"),
+     in_dir(PREP, function() rscript(normalizePath(file.path(here, "calibration", "prep", "148_prepare_two_interval_v12_no_year0.R")))))
+step("2n v12 against the study's manifest", character(0), check_manifest(PARAMS$prep_version, PARAMS$expected_sha))
 
 ## ---- 3. stage, summarise, fit, release, validate (this repository's scripts) -------------------
 step("3a 01 stage prepared data (+ weights if a study checkout is present)", file.path(DATA_DIR, "prepared", PARAMS$prep_version, "train", "obs_dt.csv"),

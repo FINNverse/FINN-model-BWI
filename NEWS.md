@@ -16,10 +16,17 @@ First fitted model, variant `linear`:
   refit on the frozen demography, 100 epochs). FINN 0.2.0 release candidate
   6705a50 (fast-setup + F1); reproduced under FINN 0.2.0 main 0848b60 with
   `fit(weight_scale = "raw")`.
-* Holdout (spatially blocked, both decades): basal area R2 0.85 (species level;
-  persistence reference 0.82), stem density R2 0.64, survivor growth R2 0.46,
+* Holdout (spatially blocked, both decades): basal area R2 0.86 (species level;
+  persistence reference 0.83), stem density R2 0.68, survivor growth R2 0.47,
   mortality AUC 0.76 (tree-weighted), predicted/observed removals 0.93. See
   `calibration/validation/report.md`.
+* Env layout: the v0.1.0 parameters come from the study's fit on
+  `two-interval-v8`, whose env grid carried an extra year-0 row, so that fit
+  simulated 11 annual transitions per 10-year interval. The fitted rates are
+  unaffected (their windows were 10 years); the holdout state metrics above are
+  computed on the corrected layout `two-interval-v12` (10 env rows, census at
+  step 10), which all calibration scripts now read. One env row = one annual
+  transition; there is no year-0 row.
 * Release asset `parameters.pt` (sha256 in `inst/model/weights.json`), a named
   list of parameter tensors rebuilt by `build_model()`.
 * Licences: code GPL (>= 3); BWI base data Thuenen-Institut CC BY-SA 4.0, so

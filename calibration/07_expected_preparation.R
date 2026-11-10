@@ -17,7 +17,7 @@
 suppressPackageStartupMessages(library(data.table))
 DATA_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-zoo-data", "bwi"), file.path("..", "FINN-zoo-data", "bwi")))[1]
 PARAMS <- list(
-  prep_version = "two-interval-v8",
+  prep_version = "two-interval-v12",      # v8 without env row year 0; only env_rows and the drought2 moments differ from v8
   sets         = c("national", "train", "holdout_blocked", "pilot"),
   period       = 10L,
   out          = file.path("calibration", "expected_preparation.csv"),
@@ -30,7 +30,7 @@ summarise_set <- function(s) {
   sid  <- fread(file.path(d, "siteID_dt.csv")); sp <- fread(file.path(d, "species_dt.csv"))
   iv <- unique(sid[, .(siteID, interval)])
   obs <- merge(obs, iv, by = "siteID"); tree <- merge(tree, iv, by = "siteID"); init <- merge(init, iv, by = "siteID")
-  mg <- merge(envu[year == 0L, .(siteID, management)], iv, by = "siteID")
+  mg <- merge(envu[year == 1L, .(siteID, management)], iv, by = "siteID")   # management is constant over the decade
   per_int <- rbindlist(list(
     obs[year == PARAMS$period, .(measure = c("site_periods", "obs_rows", "sum_ba_end_m2_per_patch", "sum_trees_end", "sum_recruits_per_ha_period",
                                              "sum_n_at_risk", "sum_n_died", "mean_growth"),

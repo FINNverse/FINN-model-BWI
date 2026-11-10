@@ -62,7 +62,7 @@ FIT_DIR  <- file.path(DATA_DIR, "fits", "stage1")
 dir.create(FIT_DIR, recursive = TRUE, showWarnings = FALSE)
 
 PARAMS <- list(
-  prep_version  = "two-interval-v8",       # the study's data version (PREPARATION.md in the version folder)
+  prep_version  = "two-interval-v12",      # v8 without env row year 0 (PREPARATION_v12.md): the per-tree window is env years 1..10 in both layouts
   train_set     = "train",
   env_vars      = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # single drought index drought2; the drought term must stay last
   mort_target   = "tree",                  # per-tree 0/1 over the decade (the final model's target)

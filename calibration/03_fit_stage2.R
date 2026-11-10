@@ -64,7 +64,7 @@ DATA_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-zoo-data", "bwi"), 
 FIT_DIR  <- file.path(DATA_DIR, "fits", "stage2")
 
 PARAMS <- list(
-  prep_version  = "two-interval-v8",       # the study's data version
+  prep_version  = "two-interval-v12",      # v8 without env row year 0: 10 env rows = 10 transitions per decade (the released v0.1.0 parameters were fitted on v8, which ran 11; rates unaffected)
   train_set     = "train",                 # 32,191 training site-periods
   holdout_set   = "holdout_blocked",       # not read here; recorded for the validation
   stage1_dir    = file.path(DATA_DIR, "weights", "v0.1.0"),   # the released prefit (model_stage1.pt, stage1_coefficients.csv, dispersion_stage1.csv); DATA_DIR/fits/stage1 from 02_fit_stage1.R is bit-identical
@@ -272,12 +272,12 @@ DEV <- rbindlist(lapply(names(W2), function(p) {
 fwrite(DEV[order(process, species)], file.path(FIT_DIR, "l2_deviation.csv"))
 
 ## the fed recruitment must equal the observed period totals over fit()'s
-## window: observation (year Y, period p) <- env rows Y-p+1..Y = sim years Y-p+2..Y+1
+## window: observation (year Y, period p) <- env rows Y-p+1..Y = sim years Y-p+1..Y (v12: one env row per transition)
 sim_chk <- simulateForest(model, env = env_obsreg, init_cohort = init_cohort,
                           patch_size = PARAMS$patch_size_ha, device = "cpu")
 S <- as.data.table(sim_chk$wide$site)
 for (cc in c("siteID", "year", "species")) S[, (cc) := as.integer(as.character(get(cc)))]
-fed <- obs[, .(sim_year = (year - period_length + 2L):(year + 1L)), by = .(siteID, obs_year = year, species, reg)]
+fed <- obs[, .(sim_year = (year - period_length + 1L):year), by = .(siteID, obs_year = year, species, reg)]
 fed <- merge(fed, S[, .(siteID, sim_year = year, species, r = r_mean_ha)], by = c("siteID", "sim_year", "species"))[
   , .(reg = reg[1], reg_m = sum(r)), by = .(siteID, obs_year, species)]
 fed_ratio <- sum(fed$reg_m) / sum(fed$reg)

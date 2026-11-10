@@ -23,8 +23,9 @@ covariate_table = function() {
 #'   precipitation, mm), `elev_m` (elevation, m), `management` (regular-harvest
 #'   tier 0, 1, 2 or 3 per site, see [covariate_table()]) and `drought2`
 #'   (mean of the current and the previous year's growing-season soil-moisture
-#'   z-anomaly; 0 = long-term mean, negative = drier). Row `year = 0` is the
-#'   initial state; row `k` drives simulated year `k + 1`.
+#'   z-anomaly; 0 = long-term mean, negative = drier). One row per annual
+#'   transition: row `year = k` drives simulated year `k` (years 1..n); the
+#'   initial state is the init cohort, there is no year-0 row.
 #' @return A `data.table` (what [FINN::simulateForest()] expects) with the
 #'   covariate columns scaled, ordered as the model expects.
 #' @export

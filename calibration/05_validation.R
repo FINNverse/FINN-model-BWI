@@ -40,7 +40,7 @@ dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 
 PARAMS <- list(
   release        = "v0.1.0",                # weights folder (= the model repo's release tag)
-  prep_version   = "two-interval-v8",
+  prep_version   = "two-interval-v12",      # v8 without env row year 0: 10 env rows = 10 annual transitions per decade (the fit's v8 layout ran 11)
   holdout_set    = "holdout_blocked",       # spatially blocked, never fitted
   env_vars       = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # the model's env columns
   period         = 10L,                     # every observation is a decade
@@ -69,13 +69,16 @@ species <- fread(file.path(d, "species_dt.csv"))
 scales  <- fread(file.path(d, "env_scales.csv"))
 n_species <- nrow(species)
 zs <- function(v, x) (x - scales[variable == v, mean]) / scales[variable == v, sd]
-stopifnot(all(obs$period_length == P), nrow(env) == uniqueN(obs$siteID) * (P + 1L))
+stopifnot(all(obs$period_length == P), nrow(env) == uniqueN(obs$siteID) * P, setequal(unique(env$year), seq_len(P)))   # v12: env years 1..10, no year-0 row
 message(sprintf("holdout: %d site-periods, %d species, parameters.pt sha256 %s...", uniqueN(obs$siteID), n_species, substr(sha, 1, 12)))
 
 ## ---- 2. simulate the holdout decade from the observed stand ---------------------------
-## each observation (year 10) is scored from the simulation as fit() scores it:
-## state at sim year 11, growth and mortality as the mean annual rate over sim
-## years 2..11, recruitment as their sum (env row k drives sim year k + 1)
+## each observation (year 10) is scored from the simulation as fit() scores it
+## on the v12 layout: every env row drives one annual transition, so the state
+## is taken at sim year 10 (= 10 transitions after the start census), growth
+## and mortality as the mean annual rate over sim years 1..10, recruitment as
+## their sum. (The v8 layout of the fit had an extra year-0 row and scored the
+## state after 11 transitions; the rate windows were 10 years in both.)
 FINN.seed(PARAMS$seed)
 t0 <- Sys.time()
 sim <- simulateForest(model, env = env, init_cohort = makeInitCohorts(init, dbh_binsize = PARAMS$dbh_binsize, Nspecies = n_species),
@@ -83,9 +86,10 @@ sim <- simulateForest(model, env = env, init_cohort = makeInitCohorts(init, dbh_
 S <- as.data.table(sim$wide$site)
 for (cc in c("siteID", "year", "species")) S[, (cc) := as.integer(as.character(get(cc)))]
 message(sprintf("simulated in %.1f min", as.numeric(difftime(Sys.time(), t0, units = "mins"))))
-st <- S[year == P + 1L, .(siteID, species, dbh_m = dbh, ba_m = ba, trees_m = trees)]
-rt <- S[year >= 2L & year <= P + 1L, .(growth_m = mean(growth, na.rm = TRUE), mort_m = mean(mort, na.rm = TRUE),
-                                        reg_m = sum(r_mean_ha, na.rm = TRUE)), by = .(siteID, species)]
+stopifnot(max(S$year) == P)
+st <- S[year == P, .(siteID, species, dbh_m = dbh, ba_m = ba, trees_m = trees)]
+rt <- S[year >= 1L & year <= P, .(growth_m = mean(growth, na.rm = TRUE), mort_m = mean(mort, na.rm = TRUE),
+                                   reg_m = sum(r_mean_ha, na.rm = TRUE)), by = .(siteID, species)]
 M <- merge(merge(obs[year == P], st, by = c("siteID", "species")), rt, by = c("siteID", "species"))
 M <- merge(M, species, by = "species")
 M[, mort_period_m := 1 - (1 - pmin(pmax(mort_m, 0), 1))^P]
@@ -153,11 +157,11 @@ SPM <- M[, {
 fwrite(SPM, file.path(MODEL_DIR, "metrics_species.csv"))
 
 ## ---- 4. succession from bare ground -------------------------------------------------
-site_env <- merge(env[year == 0L, .(siteID, mat_c, map_mm, elev_m)],
-                  envu[year == 0L, .(siteID, mat_nat = mat_c, map_nat = map_mm, elev_nat = elev_m)], by = "siteID")[order(mat_c)]
+site_env <- merge(env[year == 1L, .(siteID, mat_c, map_mm, elev_m)],
+                  envu[year == 1L, .(siteID, mat_nat = mat_c, map_nat = map_mm, elev_nat = elev_m)], by = "siteID")[order(mat_c)]
 picks <- site_env[round(quantile(seq_len(.N), seq(0.1, 0.9, length.out = PARAMS$bare_locations)))]
 picks[, `:=`(sim_site = .I, loc = sprintf("%.1f C, %.0f mm, %.0f m", mat_nat, map_nat, elev_nat))]
-env_bare <- picks[, .(year = 0:PARAMS$bare_years), by = .(siteID = sim_site, mat_c, map_mm, elev_m)]
+env_bare <- picks[, .(year = seq_len(PARAMS$bare_years)), by = .(siteID = sim_site, mat_c, map_mm, elev_m)]   # one env row per annual transition
 for (v in names(PARAMS$bare_natural)) env_bare[, (v) := zs(v, PARAMS$bare_natural[[v]])]
 setcolorder(env_bare, c("siteID", "year", PARAMS$env_vars))
 FINN.seed(PARAMS$seed)
@@ -242,6 +246,7 @@ writeLines(c(
   "# Validation report, FINNmodelBWI (variant linear)", "",
   sprintf("Written %s by `calibration/05_validation.R`; FINN %s, torch %s; parameters `weights/%s/parameters.pt` sha256 `%s` rebuilt with `R/definition.R::build_model()`; data `prepared/%s/%s` (%d site-periods).",
           format(Sys.time(), "%Y-%m-%d %H:%M"), packageVersion("FINN"), packageVersion("torch"), PARAMS$release, sha, PARAMS$prep_version, PARAMS$holdout_set, uniqueN(obs$siteID)), "",
+  "Layout note: the v0.1.0 parameters come from the study's fit on `two-interval-v8`, whose env grid carried an extra year-0 row, so that fit simulated 11 annual transitions per 10-year interval; the fitted rates are unaffected (the rate windows were 10 years), and the state metrics below are computed on the corrected layout `two-interval-v12` (10 transitions, census at step 10).", "",
   "## Holdout metrics", "", md_table(MET[, .(response, level, n, rmse, r2, pearson_r, pred_over_obs, auc)]), "",
   "## Per species (holdout)", "", md_table(SPM[, .(species_name, n_trees_at_risk, ba_r2, ba_r2_persistence, stems_r2, growth_r, mort_auc, mort_pred_over_obs, stems_pred_over_obs, recruits_pred_over_obs)]), "",
   "## Bare-ground equilibrium (mean of the last 100 of 1000 years)", "", md_table(EQ), "",

@@ -4,8 +4,8 @@
 ## WHAT   Writes the example stands the package ships in inst/extdata (CC BY-SA
 ##        4.0 with attribution to the Thuenen Institute, see
 ##        inst/model/LICENSE-parameters.md): four holdout site-periods (never
-##        fitted) with their environment in NATURAL units (year 0..10, the
-##        decade's observed drought index) and their initial stand (cohorts:
+##        fitted) with their environment in NATURAL units (years 1..10, one row
+##        per annual transition, the decade's observed drought index) and their initial stand (cohorts:
 ##        species, dbh, stems on the 0.1 ha patch), in the input format of the
 ##        quickstart vignette.
 ## WHY    Users need a worked example of the input tables on real stands. No
@@ -19,7 +19,7 @@
 suppressPackageStartupMessages(library(data.table))
 DATA_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-zoo-data", "bwi"), file.path("..", "FINN-zoo-data", "bwi")))[1]
 PARAMS <- list(
-  prep_version = "two-interval-v8",
+  prep_version = "two-interval-v12",      # env years 1..10, one row per annual transition
   set          = "holdout_blocked",       # never fitted
   interval     = 2L,                      # the 2012-2022 decade: its drought index carries 2018-2020
   dominants    = c("Picea abies", "Fagus sylvatica", "Pinus sylvestris", "Quercus petraea"),   # one site per dominant species
@@ -35,7 +35,7 @@ init <- init[living == TRUE, .(siteID, patchID, species, dbh, trees)]   # init_c
 stand <- merge(init, sp, by = "species")[, .(ba_ha = sum(trees * pi * (dbh / 200)^2) / 0.1, stems = sum(trees)), by = .(siteID, species_name)]
 tot <- stand[, .(ba_ha = sum(ba_ha), dominant = species_name[which.max(ba_ha)], share = max(ba_ha) / sum(ba_ha)), by = siteID]
 tot <- merge(tot, sid, by = "siteID")[interval == PARAMS$interval & ba_ha >= PARAMS$min_ba_ha & ba_ha <= PARAMS$max_ba_ha & share >= 0.6]
-tot <- merge(tot, envu[year == 0L, .(siteID, management)], by = "siteID")
+tot <- merge(tot, envu[year == 1L, .(siteID, management)], by = "siteID")
 set.seed(PARAMS$seed)
 pick <- rbindlist(lapply(PARAMS$dominants, function(s) tot[dominant == s][sample(.N, 1L)]))
 pick[, example := .I]
@@ -47,5 +47,5 @@ INIT <- merge(merge(init[siteID %in% pick$siteID], pick[, .(siteID, example)], b
 dir.create(PARAMS$out_dir, showWarnings = FALSE, recursive = TRUE)
 fwrite(ENV, file.path(PARAMS$out_dir, "example_env.csv"))
 fwrite(INIT, file.path(PARAMS$out_dir, "example_init.csv"))
-print(merge(pick[, .(example, dominant, ba_ha = round(ba_ha, 1), management)], ENV[year == 0L, .(siteID, mat_c, map_mm, elev_m, lon, lat)], by.x = "example", by.y = "siteID"))
+print(merge(pick[, .(example, dominant, ba_ha = round(ba_ha, 1), management)], ENV[year == 1L, .(siteID, mat_c, map_mm, elev_m, lon, lat)], by.x = "example", by.y = "siteID"))
 message(sprintf("wrote %d sites to %s: %d env rows, %d cohorts", nrow(pick), PARAMS$out_dir, nrow(ENV), nrow(INIT)))

@@ -47,7 +47,7 @@ DATA_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-zoo-data", "bwi"), 
 FIT_DIR  <- file.path(DATA_DIR, "fits", "stage3")
 
 PARAMS <- list(
-  prep_version  = "two-interval-v8",       # the study's data version
+  prep_version  = "two-interval-v12",      # v8 without env row year 0: 10 env rows = 10 transitions per decade
   train_set     = "train",
   holdout_set   = "holdout_blocked",
   stage2_dir    = file.path(DATA_DIR, "fits", "stage2"),          # written by 03_fit_stage2.R
@@ -236,13 +236,13 @@ REGDEV[, K_fit := exp(as.numeric(model$reg_logK$detach()$cpu()))[species]]   # t
 fwrite(REGDEV, file.path(FIT_DIR, "regeneration_vs_stage1.csv"))
 
 ## predicted / observed recruitment on train over fit()'s windows: observation
-## (year Y, period p) <- sim years Y-p+2..Y+1; start (stage-1 regeneration) and end
+## (year Y, period p) <- sim years Y-p+1..Y (v12: one env row per transition); start (stage-1 regeneration) and end
 rec_ratio <- function(m) {
   FINN.seed(PARAMS$seed)
   S <- as.data.table(simulateForest(m, env = env, init_cohort = init_cohort, patch_size = PARAMS$patch_size_ha, device = "cpu")$wide$site)
   for (cc in c("siteID", "year", "species")) S[, (cc) := as.integer(as.character(get(cc)))]
   W <- unique(obs[, .(siteID, obs_year = year, period_length)])[
-    , .(year = (obs_year - period_length + 2L):(obs_year + 1L)), by = .(siteID, obs_year)]
+    , .(year = (obs_year - period_length + 1L):obs_year), by = .(siteID, obs_year)]
   sum(merge(W, S[, .(siteID, year, r_mean_ha)], by = c("siteID", "year"))$r_mean_ha) / sum(pmax(obs$reg, 0))
 }
 ratio_start <- rec_ratio(torch_load(file.path(FIT_DIR, "model_init.pt")))

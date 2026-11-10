@@ -123,8 +123,11 @@ anonymised position.
 ## 6. Prepared data and weights
 
 - `two-interval-v8`: `PREPARATION.md` (copy of the version folder's) and the
-  46-file manifest `two-interval-v8.sha256`; the committed summary
-  `expected_preparation.csv` (written by `07_expected_preparation.R`).
+  46-file manifest `two-interval-v8.sha256`. `two-interval-v12` = v8 without
+  the env row year 0 (`PREPARATION_v12.md`, 47-file manifest
+  `two-interval-v12.sha256`, written by `prep/148_*.R`): the layout every
+  calibration script reads; the committed summary `expected_preparation.csv`
+  (written by `07_expected_preparation.R`) describes v12.
 - Release asset `parameters.pt` (v0.1.0): sha256
   `dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7`, extracted
   from the stage-3 model object (sha256
