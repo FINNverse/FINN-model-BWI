@@ -3,18 +3,26 @@
     "linear": {
       "tag": "v0.1.0",
       "file": "parameters.pt",
-      "url": "",
+      "url": "https://github.com/FINNverse/FINN-model-BWI/releases/download/v0.1.0/parameters.pt",
       "sha256": "dadd5d300cee0976e6dc7874b75070c50a12f2da3fb1c48e95e38f896a156da7",
+      "model_file": "model.pt",
+      "model_url": "https://github.com/FINNverse/FINN-model-BWI/releases/download/v0.1.0/model.pt",
+      "model_sha256": "5c046997df7f882b0cd7d12e468f1eb9a2c89f61542d557a5f089611a8f2b857",
       "license": "CC BY-SA 4.0 (share-alike of the BWI base data, Thuenen-Institut; see LICENSE-parameters.md)",
       "finn_commit": "0848b60",
       "finn_commit_fitted": "6705a50",
+      "finn_version": "0.2.0",
+      "torch_version": "0.15.1",
       "weight_scale": "raw",
       "data_version": "two-interval-v8",
+      "validation_data_version": "two-interval-v12",
       "patches": 20,
       "patch_size": 0.1,
       "theta_sim_factor": 3.5,
+      "threads": 1,
+      "sim_batchsize": 1000,
       "covariates": ["mat_c", "map_mm", "elev_m", "management", "drought2"],
-      "notes": "Parameters of the staged fit (stage 1 prefit -> stage 2 inverse calibration, epoch 700 of 1000 -> stage 3 regeneration with a fitted Beverton-Holt cap) on two-interval-v8/train. Fitted with FINN 0.2.0 release candidate 6705a50 (fast-setup + F1); extracted as a named parameter list and validated with FINN 0.2.0 main 0848b60, under which fit(weight_scale = 'raw') reproduces the fit objective. url is filled by the release; until then load_model(path = <local parameters.pt>)."
+      "notes": "Parameters of the staged fit (stage 1 prefit -> stage 2 inverse calibration, epoch 700 of 1000 -> stage 3 regeneration with a fitted Beverton-Holt cap) on two-interval-v8/train. Fitted with FINN 0.2.0 release candidate 6705a50 (fast-setup + F1); extracted as a named parameter list and validated with FINN 0.2.0 main 0848b60, under which fit(weight_scale = 'raw') reproduces the fit objective. parameters.pt is what load_model() rebuilds from; model.pt is the whole stage-3 model object (torch_save) for torch::torch_load() under FINN 6705a50/0848b60. Pinned for simulation: one torch thread and batchsize 1000 (the validation's value); a different batchsize changes the random draws but not the model."
     }
   }
 }

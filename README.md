@@ -7,18 +7,27 @@ as a versioned simulation tool (R package `FINNmodelBWI`). The model card with
 data, model, fit and holdout validation is in the
 [FINN-zoo](https://finnverse.github.io/FINN-zoo/models.html).
 
-**Status: v0.1.0 in preparation, no public release yet.** Until the release
-asset exists, pass the parameter file by hand:
-`load_model(path = "<...>/parameters.pt")`.
+**Current release: v0.1.0** (see `NEWS.md`). The fitted parameters are release
+assets of this repository (`parameters.pt`, the named parameter list
+`load_model()` rebuilds from, and `model.pt`, the whole fitted model object);
+`load_model()` downloads `parameters.pt` once and checks its sha256. A local
+copy can be passed by hand: `load_model(path = "<...>/parameters.pt")`.
 
 ```r
-remotes::install_github("FINNverse/FINN-model-BWI")
+remotes::install_github("FINNverse/FINN@0848b60")           # FINN 0.2.0, the version the parameters were validated with
+remotes::install_github("FINNverse/FINN-model-BWI@v0.1.0")
 library(FINNmodelBWI)
+torch::torch_set_num_threads(1L)   # pinned: the validation ran single-threaded
 m = load_model()          # downloads the released parameters once, checks sha256
 species_table()           # 15 species, index -> Latin name
 covariate_table()         # the five covariates, units, sources, how to derive them
 vignette("quickstart", package = "FINNmodelBWI")
 ```
+
+Simulations are run with one torch thread and an explicit `batchsize` (1000
+sites per `simulateForest()` batch, the value pinned in `model_info()`;
+`simulate_model()` and `simulate_tiers()` use it by default). A different
+batchsize changes the random draws but not the model.
 
 What the model needs per site and year (`env`, natural units; `scale_env()`
 puts it on the model's scale): mean annual temperature, annual precipitation,
@@ -44,8 +53,8 @@ every raw layer with licence and checksum).
   Kohlenstoffinventur 2017 – Inventurarchiv", https://ci.thuenen.de/rest/v1/
   (BWI 2022). The raw data are not in this repository; `calibration/`
   downloads them from the source.
-- **Fitted parameters** (`parameters.pt`, the release asset; `model.pt` of
-  the calibration) **and the BWI-derived example stands** in `inst/extdata`:
+- **Fitted parameters** (the release assets `parameters.pt` and `model.pt`)
+  **and the BWI-derived example stands** in `inst/extdata`:
   share-alike, released under **CC BY-SA 4.0** with the attribution above
   (`inst/model/LICENSE-parameters.md`).
 - Climate normals: WorldClim 2.1, Fick, S.E. & Hijmans, R.J. (2017) Int. J.

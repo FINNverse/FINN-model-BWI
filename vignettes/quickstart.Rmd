@@ -9,26 +9,41 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
-## The vignette runs when the parameter file is available: either the release
-## asset (load_model() downloads it) or a local copy given in FINNMODELBWI_PARAMETERS.
+## The chunks need the fitted parameters and a torch backend. They are not
+## evaluated when the package is built; set FINNMODELBWI_PARAMETERS to a local
+## copy of parameters.pt (the release asset) to run them, or set it to "download"
+## to let load_model() fetch the release asset.
 local_pt <- Sys.getenv("FINNMODELBWI_PARAMETERS", unset = "")
-can_run <- nzchar(local_pt) || nzchar(FINNmodelBWI::model_info()[[1]]$url)
-knitr::opts_chunk$set(eval = can_run)
+knitr::opts_chunk$set(eval = nzchar(local_pt))
 ```
 
-## 1. Load the model
+## 1. Install and load the model
+
+```{r install, eval = FALSE}
+remotes::install_github("FINNverse/FINN@0848b60")           # FINN 0.2.0, the version the parameters were validated with
+remotes::install_github("FINNverse/FINN-model-BWI@v0.1.0")
+```
 
 The package ships the model *definition* (`build_model()`) and the release
 metadata; the fitted parameters are a small file (`parameters.pt`, a named list
-of parameter tensors) that `load_model()` downloads once and checks against its
-sha256. The model is rebuilt with the installed FINN (0.2.0 or later).
+of parameter tensors, a release asset of the repository) that `load_model()`
+downloads once and checks against its sha256. The model is rebuilt with the
+installed FINN (0.2.0 or later). The whole stage-3 model object (`model.pt`)
+is a second asset of the release for `torch::torch_load()` under the same FINN
+version; `model_info()` lists both files with their sha256 and the FINN commit.
+
+Threads and batch size are pinned to the values the model was validated with:
+one torch thread (`torch_set_num_threads(1L)`) and an explicit `batchsize`
+(1000 sites per `simulateForest()` batch, `model_info()$linear$sim_batchsize`).
+A different batchsize changes the random draws but not the model.
 
 ```{r load}
 library(FINNmodelBWI)
 library(FINN)
 library(torch)
-torch_set_num_threads(1L)
-m <- if (nzchar(local_pt)) load_model(path = local_pt) else load_model()
+torch_set_num_threads(1L)                           # pinned: the validation ran single-threaded
+BATCHSIZE <- model_info()$linear$sim_batchsize      # pinned: 1000 sites per simulateForest() batch
+m <- if (identical(local_pt, "download")) load_model() else load_model(path = local_pt)
 species_table()
 ```
 
@@ -83,7 +98,7 @@ env[, `:=`(mat_c = 8.0, map_mm = 800, elev_m = 400, management = 0,
 run <- function(tier) {
   e <- data.table::copy(env)[, management := tier]
   FINN.seed(1)
-  s <- simulateForest(m, env = scale_env(e), init_cohort = init_cohort, patch_size = 0.1, device = "cpu")$wide$site
+  s <- simulateForest(m, env = scale_env(e), init_cohort = init_cohort, patch_size = 0.1, batchsize = BATCHSIZE, device = "cpu")$wide$site
   s <- as.data.frame(lapply(s, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
   aggregate(cbind(ba_ha = ba / 0.1, stems_ha = trees / 0.1) ~ siteID + year, s, sum)
 }
@@ -125,7 +140,7 @@ run_r <- function(tier = NULL) {
   e <- env_r
   if (!is.null(tier)) e$management <- tier
   FINN.seed(1)
-  s <- simulateForest(m, env = scale_env(e), init_cohort = ic_r, patch_size = 0.1, device = "cpu")$wide$site
+  s <- simulateForest(m, env = scale_env(e), init_cohort = ic_r, patch_size = 0.1, batchsize = BATCHSIZE, device = "cpu")$wide$site
   s <- as.data.frame(lapply(s, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
   aggregate(cbind(ba_ha = ba / 0.1) ~ siteID + year, s, sum)
 }
@@ -144,7 +159,7 @@ model card asks for (the tier is a post-treatment covariate of the
 calibration, not a harvest process).
 
 ```{r tiers}
-rng <- simulate_tiers(m, env_r, ic_r, tiers = 0:3)
+rng <- simulate_tiers(m, env_r, ic_r, tiers = 0:3, batchsize = BATCHSIZE)
 rng10 <- rng[year == 10]
 data.table::dcast(rng10, siteID ~ tier, value.var = "ba_ha")       # basal area (m2/ha) after the decade, tiers 0..3
 rng10[, .(removal_min = min(removal), removal_max = max(removal)), by = siteID]   # annual removal probability range
@@ -164,7 +179,7 @@ mid-elevation site, from bare ground (20 patches).
 site <- data.frame(siteID = 1L, year = 1:40, mat_c = 7.5, map_mm = 850, elev_m = 450, management = 0)
 site$drought2 <- ifelse(site$year %in% 5:7, -1.5, 0)
 FINN.seed(2)
-bare <- simulateForest(m, env = scale_env(site), init_cohort = NULL, patches = 20L, patch_size = 0.1, device = "cpu")$wide$site
+bare <- simulateForest(m, env = scale_env(site), init_cohort = NULL, patches = 20L, patch_size = 0.1, batchsize = BATCHSIZE, device = "cpu")$wide$site
 bare <- as.data.frame(lapply(bare, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
 tot <- aggregate(cbind(ba_ha = ba / 0.1) ~ year, bare, sum)
 top <- aggregate(ba ~ species, bare[bare$year == 40, ], sum)
@@ -188,4 +203,9 @@ abline(v = c(5, 7), lty = 3)
   `drought2` of about -2.3.
 * Mortality means *removal* (natural death plus harvest). The management tier
   does not cut trees; it raises the removal rate.
+* FINN's simulated mortality has a floor of 0.01 per annual step
+  (FINNverse/FINN#51). Species whose fitted removal rate lies below 1 % per
+  year (beech at tier 0: 0.55 %) are simulated at the floor, which the fit did
+  not see; long tier-0 and bare-ground runs are denser and younger than the
+  fitted rates imply.
 ```

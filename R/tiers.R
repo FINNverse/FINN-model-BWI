@@ -21,6 +21,9 @@
 #' @param patch_size,patches Passed to [FINN::simulateForest()]; the model's
 #'   fitted patch size is 0.1 ha.
 #' @param species Return the per-species table instead of the stand totals.
+#' @param batchsize Sites per simulation batch; the default is the value pinned
+#'   in the release (`model_info()[[1]]$sim_batchsize`). A different batchsize
+#'   changes the random draws but not the model.
 #' @param ... Further arguments for [FINN::simulateForest()].
 #' @return A `data.table` with `tier`, `siteID`, `year` and, for the totals,
 #'   `ba_ha` (m2 per ha), `stems_ha`, `removal` (stem-weighted annual removal
@@ -28,14 +31,15 @@
 #'   additionally `species`, `name`, `dbh`, `growth`, `mort`.
 #' @export
 simulate_tiers = function(model, env, init_cohort = NULL, tiers = 0:3, seed = 1L, patch_size = 0.1, patches = 20L,
-                          species = FALSE, ...) {
+                          species = FALSE, batchsize = NULL, ...) {
   stopifnot(all(tiers %in% 0:3))
+  if (is.null(batchsize)) batchsize = model_info()[[1]]$sim_batchsize
   sp = species_table()
   out = lapply(tiers, function(t) {
     e = as.data.frame(env); e$management = t
     FINN::FINN.seed(seed)
     s = FINN::simulateForest(model, env = scale_env(e), init_cohort = init_cohort, patch_size = patch_size,
-                             patches = patches, device = "cpu", ...)$wide$site
+                             patches = patches, batchsize = batchsize, device = "cpu", ...)$wide$site
     s = data.table::as.data.table(lapply(s, function(x) if (is.factor(x)) as.integer(as.character(x)) else x))
     s[, tier := t]
     s

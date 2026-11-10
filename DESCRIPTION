@@ -25,5 +25,5 @@ URL: https://github.com/FINNverse/FINN-model-BWI, https://finnverse.github.io/FI
 Depends: R (>= 4.1)
 Imports: FINN (>= 0.2.0), torch, data.table, jsonlite, digest, tools, utils
 Suggests: knitr, rmarkdown
-Remotes: FINNverse/FINN
+Remotes: FINNverse/FINN@0848b60
 VignetteBuilder: knitr
