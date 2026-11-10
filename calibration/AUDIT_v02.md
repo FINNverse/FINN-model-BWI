@@ -5,9 +5,9 @@ the FINN-bwi study (branch `inventory-simulator`: `docs/bwi_data_notes.md`,
 `docs/STATUS_REVIEW_2026-11-08.md`, `docs/HANDOVER_2026-11-08.md`, the v5/v8/v12
 `PREPARATION.md`, `scripts/148`) and the study's memory notes, read-only. Evidence
 for the released v0.1.0 parameters: `validation/` (holdout, corrected v12 layout)
-and, once the laptop budget allows a one-minute run, `v02/audit/`
-(`v02/audit_residuals.R`: residuals by decade x tier, start-BA class and species;
-change metrics against persistence; loss trends). Status flags: **handled** (in
+and `v02/audit/` (`v02/audit_residuals.R`: residuals by decade x tier, start-BA
+class and species, change metrics against persistence, loss trends; sections 12
+and 13; `v02/audit_mortality_floor.R`: where FINN's 1 % mortality floor binds). Status flags: **handled** (in
 the pipeline and the released parameters), **handled by v0.2** (needs the v12
 refit, which the study runs), **open** (no fix yet; stated as a limitation).
 
@@ -183,7 +183,7 @@ median 22 km to the nearest training tract), persistence as the null (BA R²
 0.107), tree-weighted removal AUC with ties at half (0.757) and calibration
 (0.932), bare-ground runs converge (40-45 m² ha⁻¹, drift -5 to +9 % per
 century, beech-dominated). Change metrics (ΔBA, Δstems vs persistence) are in
-`v02/audit_residuals.R` (to be run). Mortality target: `obs_dt$mort` is the
+section 12. Mortality target: `obs_dt$mort` is the
 annualised TOTAL removal rate; `n_died` counts natural deaths only — removals
 must be derived from `mort` (the first zoo validation used `n_died` and got AUC
 0.726 / calibration 2.9; corrected 2026-11-09).
@@ -222,7 +222,133 @@ not separable in decadal data, r 0.95, hence one index). 15 species = 99 % of
 the basal area on the kept corners; no "other" class. No person-related
 columns anywhere (the field-crew column is never read).
 
-## 12. What v0.2 changes and what it does not
+## 12. Residuals of v0.1.0 on the holdout (v12 layout) — evidence
+
+From `v02/audit_residuals.R` (`v02/audit/*.csv`, `fig_residuals.png`); 8,596
+site-periods, ratios are sums predicted / observed.
+
+**By decade and recorded tier** (`residuals_by_decade_tier.csv`; M1 has 4 + 1
+corners and is ignored):
+
+| decade | tier | n | removals | growth | recruits | BA end | stems end |
+|---|---|---|---|---|---|---|---|
+| 2002-12 | 0 | 2,100 | 1.27 | 0.98 | 0.66 | 0.99 | 1.15 |
+| 2002-12 | 2 | 832 | 1.19 | 0.99 | 1.13 | 1.00 | 1.18 |
+| 2002-12 | 3 | 1,239 | **0.79** | 1.00 | 1.48 | **1.31** | **1.57** |
+| 2012-22 | 0 | 2,775 | **0.71** | 1.06 | 0.94 | 1.09 | 1.26 |
+| 2012-22 | 2 | 518 | **1.57** | 1.10 | 1.30 | 0.96 | 1.15 |
+| 2012-22 | 3 | 1,127 | 0.99 | 1.10 | 1.24 | 1.10 | 1.21 |
+
+The linear tier term averages over two decades with different harvest
+regimes: it over-predicts removals at tier 0 and under-predicts at tier 3 in
+2002-2012 (Kyrill salvage sits in the 2002-2012 tiers), and under-predicts the
+tier-0 removals of the drought decade by 29 % (calamity salvage is booked as
+death on tier-0 corners) while over-predicting tier 2 by 57 %. Growth is within
+2 % in decade 1 and 6-10 % too high in decade 2 for every tier (the drought
+decade's growth loss is under-represented by one two-year index). End-of-decade
+stems are 15-26 % too many at every tier (recruitment level, section 6) and 57 %
+too many at tier 3 in decade 1 (too few removals there).
+
+**By start basal area** (`residuals_by_ba_class.csv`, m² ha⁻¹ at the start):
+
+| class | n | removals | growth | recruits | BA end | stems end | BA R² (persistence) |
+|---|---|---|---|---|---|---|---|
+| < 10 | 417 | 0.76 | 0.85 | 0.40 | 0.69 | 0.76 | 0.57 (0.57) |
+| 10-20 | 1,485 | 0.85 | 1.05 | 0.76 | 0.98 | 1.19 | 0.81 |
+| 20-30 | 2,391 | 0.89 | 1.08 | 1.24 | 1.06 | 1.30 | 0.86 |
+| 30-40 | 2,149 | 0.95 | 1.08 | 1.57 | 1.09 | 1.31 | 0.88 |
+| >= 40 | 2,154 | 0.96 | 0.94 | 1.02 | 1.11 | 1.24 | 0.86 |
+
+Sparse stands (< 10 m² ha⁻¹, 5 % of the holdout; young or just-harvested
+corners) get too little growth, recruitment and removal and end 31 % too
+light; dense stands get 9-11 % too much basal area and 24-31 % too many stems.
+The recruitment ratio runs from 0.4 to 1.6 across the classes: the light
+response of regeneration (stage 3) is steeper than the data (more recruits
+in dense stands, fewer in open ones than observed).
+
+**By species and decade** (`residuals_by_species_decade.csv`, removals pred /
+obs decade 1 | decade 2): spruce 0.81 | 0.92, sessile oak 0.75 | 0.78,
+sycamore 0.60 | 0.49, wild cherry 0.88 | 0.61, hornbeam 1.42 | 0.86, ash
+1.49 | 1.21, beech 1.05 | 1.03, pine 0.99 | 0.93. Growth decade 1 is 3-17 %
+under for 12 species and decade 2 5-16 % over for 10 species (beech 0.97 |
+1.16, pine 1.04 | 1.12, Douglas fir 0.91 | 1.14): the decade contrast in
+growth is not carried by the covariates. Recruits: larches 0.005-0.03, pine
+0.50 | 0.60, sessile oak 0.61 | 0.37, birch 0.75 | 0.38 (under); beech 1.60 |
+1.12, spruce 1.10 | 1.49, pedunculate oak 0.90 | 1.86, fir and alder 2-3 x
+(over). End stems: fir 4.3-4.7 x, sycamore 1.9-2.2 x, beech 1.46-1.56 x.
+
+**Change metrics** (`change_metrics.csv`; per site-period totals, per ha per
+decade; persistence predicts zero change):
+
+| group | n | ΔBA obs | ΔBA pred | ΔBA R² | Δstems obs | Δstems pred | Δstems R² |
+|---|---|---|---|---|---|---|---|
+| all | 8,596 | -0.66 | +1.41 | 0.22 | -181 | -35 | 0.36 |
+| decade 1, tier 0 | 2,100 | +6.45 | +6.00 | 0.01 | -13 | +111 | 0.02 |
+| decade 1, tier 3 | 1,239 | -10.17 | -2.92 | -0.36 | -506 | -252 | 0.56 |
+| decade 2, tier 0 | 2,775 | +0.56 | +3.40 | 0.04 | -104 | +51 | 0.18 |
+| decade 2, tier 2 | 518 | -0.27 | -1.75 | -0.54 | -187 | -104 | 0.62 |
+| decade 2, tier 3 | 1,127 | -8.62 | -6.31 | 0.12 | -300 | -206 | 0.55 |
+
+The model explains 22 % of the between-site variance of the decade's
+basal-area change and 36 % of the stem change (persistence: 0 by
+construction); the mean BA change is +1.4 m² ha⁻¹ per decade predicted against
+-0.7 observed, the mean stem change -35 ha⁻¹ against -181. At tier 0 the model
+has stems increasing (+111, +51) where the data have them falling (-13,
+-104): too much recruitment and too little removal in unmanaged stands;
+at tier 3 it removes only 30-70 % of the observed basal-area loss. The
+within-tier ΔBA R² is near zero or negative for tiers 0-2: the tier carries
+most of the explained change, the species-level responses little.
+
+**Loss trends** (`loss_trend.csv`, from the shipped histories): stage-2
+growth loss 0.628 (epoch 1) -> 0.487 (700) -> 0.496 (1000), mortality 0.887 ->
+0.804 -> 0.856 (baseline-scaled); last-100 vs previous-100 epochs: growth
+-0.5 %, mortality +0.02 % at 1000; +2.3 % and -0.5 % at 700. Stage 3: 0.0388
+-> 0.0360, last-25 vs previous-25 +3.9 %. Flat within mini-batch noise; the
+study's convergence check (`scripts/122`, drought response flat from epoch
+700 to 2000) stands.
+
+What this suggests for v0.2 and later (no FINN change): the tier x decade
+pattern is the known limit of a linear, decade-constant tier (a cause-resolved
+removal target or a tier that counts salvage would be a data change, major
+bump); the stems surplus and the recruitment-by-density gradient point at the
+regeneration light response and the recruitment level (section 6), both
+stage-3 matters; the decade-2 growth surplus suggests a growth drought response
+that the two-year index under-states (the study's two-term chain is the
+alternative candidate).
+
+## 13. FINN's simulated-mortality floor (0.01 per step, FINNverse/FINN#51)
+
+`simulateForest()` and the state losses of `fit()` draw deaths with the
+predicted annual probability clamped to [0.01, 0.99] (`binomial_from_gamma`
+guard); the per-tree loss is not clamped, so the released parameters were
+fitted on the unclamped probabilities but every simulation applies the floor.
+`v02/audit_mortality_floor.R` (`v02/audit/mortality_floor.csv`, pilot set,
+stem-weighted share of species-site-years whose predicted annual removal lies
+below 0.01):
+
+| run | all species | beech | spruce | pine | sessile oak |
+|---|---|---|---|---|---|
+| pilot, management as recorded | 29 % (mean rate 3.05 % -> 3.16 % floored) | 54 % | 13 % | 23 % | 74 % |
+| pilot, every site tier 0 | 51 % (1.50 % -> 1.68 %) | 100 % (0.55 % -> 1.00 %) | 26 % | 35 % | 88 % |
+| bare ground, tier 0, years 101-300 | 83 % (1.08 % -> 1.39 %) | 100 % (0.62 % -> 1.00 %) | 0 % | 0 % | 0 % |
+
+At the recorded tiers the floor hardly matters (mean removal 3.05 vs 3.16 %
+yr⁻¹). In tier-0 simulations it binds for every beech stem-year and most oak
+stem-years: the fitted unmanaged beech removal is 0.55 % yr⁻¹ (U-shaped
+mortality with the minimum at 45 cm dbh), and the simulation turns it into
+1.0 %. Consequences for users: tier-0 and tier-range results for beech-, oak-
+and fir-dominated stands carry removal rates about twice the fitted ones
+(the range over tiers 0-3 narrows from below); bare-ground equilibria are
+beech-dominated under a 1 % yr⁻¹ floor and would be denser and older without
+it (the 40-45 m² ha⁻¹ plateau is partly the floor, partly the absence of
+density-dependent mortality, FINN #28). The per-tree AUC and calibration of
+the validation are unaffected (they use the predicted probability), the
+simulated stems and basal area of unmanaged stands are. When FINN#51's
+`createProcess(mortality_floor =)` is available, `build_model()` should pass
+a small floor with `mortality_draw = "poisson"` and the bare-ground and tier-0
+figures be redone; until then the card states the floor as a limitation.
+
+## 14. What v0.2 changes and what it does not
 
 Changes: parameters from the v12 refit (10 transitions per decade), the
 layout-corrected recipe, `simulate_tiers()` and `drought_index()` for users,
