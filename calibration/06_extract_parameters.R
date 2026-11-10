@@ -26,7 +26,7 @@ source("R/definition.R")                 # build_model(): the model definition t
 
 DATA_DIR <- Filter(dir.exists, c(file.path("..", "..", "FINN-zoo-data", "bwi"), file.path("..", "FINN-zoo-data", "bwi")))[1]
 PARAMS <- list(
-  release       = "v0.1.0",              # weights folder = the model repo's semver release tag (weights.json)
+  release       = jsonlite::read_json(file.path("inst", "model", "weights.json"))$variants$linear$tag,   # weights folder = the release tag in weights.json (one place to bump)
   prep_version  = "two-interval-v12",    # corrected layout (10 env rows per decade); the comparison needs only identical inputs for both models
   check_set     = "pilot",               # 1,975 site-periods: enough to compare the rebuilt and the saved model
   patch_size_ha = 0.1,

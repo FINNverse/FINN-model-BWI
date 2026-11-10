@@ -39,7 +39,7 @@ FIG_DIR   <- file.path(MODEL_DIR, "figures")
 dir.create(FIG_DIR, showWarnings = FALSE, recursive = TRUE)
 
 PARAMS <- list(
-  release        = "v0.1.0",                # weights folder (= the model repo's release tag)
+  release        = jsonlite::read_json(file.path("inst", "model", "weights.json"))$variants$linear$tag,   # weights folder = the release tag in weights.json (one place to bump)
   prep_version   = "two-interval-v12",      # v8 without env row year 0: 10 env rows = 10 annual transitions per decade (the fit's v8 layout ran 11)
   holdout_set    = "holdout_blocked",       # spatially blocked, never fitted
   env_vars       = c("mat_c", "map_mm", "elev_m", "management", "drought2"),   # the model's env columns

@@ -136,10 +136,29 @@ data.frame(site = 1:4, dominant = dominant, tier_recorded = env_r$management[env
            ba_tier0 = round(r0$ba_ha[r0$year == 10], 1), ba_tier3 = round(r3$ba_ha[r3$year == 10], 1))
 ```
 
+## 4b. The management range in one call
+
+`simulate_tiers()` runs the same sites under tiers 0-3 with the same seed and
+returns stand totals per tier, so a result can be reported as the range the
+model card asks for (the tier is a post-treatment covariate of the
+calibration, not a harvest process).
+
+```{r tiers}
+rng <- simulate_tiers(m, env_r, ic_r, tiers = 0:3)
+rng10 <- rng[year == 10]
+data.table::dcast(rng10, siteID ~ tier, value.var = "ba_ha")       # basal area (m2/ha) after the decade, tiers 0..3
+rng10[, .(removal_min = min(removal), removal_max = max(removal)), by = siteID]   # annual removal probability range
+```
+
 ## 5. A drought scenario
 
-Set `drought2` directly: here an average climate with a three-year drought of
--1.5 sd in years 5-7, at a mid-elevation site, from bare ground (20 patches).
+`drought_index()` turns monthly soil moisture that you extracted at your sites
+(DWD CDC 1 km grids, `soil_moist`, CC BY 4.0) into the calibration's `drought2`:
+growing-season (April-September) means, per-site z-anomaly over 2000-2022,
+two-year mean. Here we set the index by hand instead:
+
+An average climate with a three-year drought of -1.5 sd in years 5-7, at a
+mid-elevation site, from bare ground (20 patches).
 
 ```{r drought}
 site <- data.frame(siteID = 1L, year = 1:40, mat_c = 7.5, map_mm = 850, elev_m = 450, management = 0)
