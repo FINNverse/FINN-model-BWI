@@ -27,9 +27,11 @@ attribution:
   Inventurarchiv, https://ci.thuenen.de/rest/v1/ (BWI 2022 and the 2017
   carbon inventory).
 
-The parameters also depend on WorldClim 2.1 climate normals (Fick, S.E. &
+The parameters also depend on climate normals from WorldClim 2.1 (Fick, S.E. &
 Hijmans, R.J. (2017) WorldClim 2: new 1-km spatial resolution climate surfaces
-for global land areas, Int. J. Climatol. 37, 4302-4315, doi:10.1002/joc.5086;
-values at the site locations only) and on Deutscher Wetterdienst Climate Data
-Center soil-moisture grids (CC BY 4.0). Model: FINNverse/FINN-model-BWI,
+for global land areas, Int. J. Climatol. 37, 4302-4315, doi:10.1002/joc.5086),
+free for academic and other non-commercial use; the rasters are not
+redistributed, only values extracted at the plot locations are included. They
+also depend on Deutscher Wetterdienst Climate Data Center soil-moisture grids
+(CC BY 4.0). Model: FINNverse/FINN-model-BWI,
 Kaeber & Pichler (2026).

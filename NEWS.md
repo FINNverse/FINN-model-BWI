@@ -65,10 +65,11 @@ Known limitations:
 Licences: code GPL (>= 3); BWI base data Thuenen-Institut CC BY-SA 4.0, so
 the fitted parameters (both assets) and the four BWI-derived example stands in
 `inst/extdata` are released share-alike under CC BY-SA 4.0 with the
-attribution in `inst/model/LICENSE-parameters.md`. WorldClim 2.1 values at the
-site locations (CC BY-SA 4.0, Fick & Hijmans 2017); DWD soil-moisture grids
-CC BY 4.0. The quickstart runs synthetic stand types and the real example
-stands.
+attribution in `inst/model/LICENSE-parameters.md`. Climate normals: WorldClim
+2.1 (Fick & Hijmans 2017, doi:10.1002/joc.5086), free for academic and other
+non-commercial use; the rasters are not redistributed, only values extracted
+at the plot locations are included. DWD soil-moisture grids CC BY 4.0. The
+quickstart runs synthetic stand types and the real example stands.
 
 # FINNmodelBWI (development)
 
